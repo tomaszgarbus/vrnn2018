@@ -5,8 +5,7 @@ import numpy as np
 import time
 import logging
 
-from constants import INPUT_SIZE, DOWNCONV_FILTERS, UPCONV_FILTERS, SAVED_MODEL_PATH,\
-    POOL_SIZE
+from segmentation_network.constants import INPUT_SIZE, DOWNCONV_FILTERS, UPCONV_FILTERS, SAVED_MODEL_PATH, POOL_SIZE
 
 # A single layer filters description. Consists of:
 # * number of filters (int)
