@@ -1,9 +1,10 @@
 import tensorflow as tf
 from typing import Optional, List, Tuple
-from math import sqrt
-import numpy as np
-import time
+from math import sqrt, ceil
 import logging
+from progress.bar import Bar
+import matplotlib.pyplot as plt
+import numpy as np
 
 from segmentation_network.constants import INPUT_SIZE, DOWNCONV_FILTERS, UPCONV_FILTERS, SAVED_MODEL_PATH, POOL_SIZE
 
@@ -49,13 +50,13 @@ class UNet:
 
         # Initialize logging.
         self.logger = logging.Logger("main_logger", level=logging.INFO)
-        log_file = 'logs/log' + str(time.ctime()) + '.txt'
         formatter = logging.Formatter(
             fmt='{message}',
             style='{'
         )
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
+        console_handler.setLevel(logging.INFO)
         # file_handler = logging.FileHandler(log_file)
         # file_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
@@ -139,8 +140,8 @@ class UNet:
 
     def _add_training_objectives(self):
         self.loss = tf.reduce_mean(tf.losses.mean_squared_error(self.y, self.output))
-        self.preds = tf.argmax(self.output, axis=3)
-        self.labels = tf.argmax(self.y, axis=3)
+        self.preds = tf.round(self.output)
+        self.labels = self.y
         self.accuracy = tf.reduce_mean(tf.cast(tf.equal(self.preds, self.labels), tf.float32))
         self.train_op = tf.train.MomentumOptimizer(self.learning_rate, momentum=0.9).minimize(self.loss)
 
@@ -161,14 +162,27 @@ class UNet:
             # Initializes variables.
             tf.global_variables_initializer().run()
 
-    def fit(self, x, y):
-        results = self.sess.run([self.loss,
-                                 self.accuracy,
-                                 self.train_op,
-                                 self.preds,
-                                 self.labels],
-                                feed_dict={self.x: x, self.y: y})
-        return results
+    def fit(self, x, y, mb_size=2, nb_epochs=1):
+        for epoch in range(nb_epochs):
+            print("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
+            logging.info("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
+            iters = int(ceil(len(x)/mb_size))
+            bar = Bar(max=iters)
+            for iter in range(iters):
+                batch_x = x[iter * mb_size: (iter + 1) * mb_size]
+                batch_y = y[iter * mb_size: (iter + 1) * mb_size]
+                loss, acc, _, output, gt = self.sess.run([self.loss,
+                                                    self.accuracy,
+                                                    self.train_op,
+                                                    self.preds,
+                                                    self.labels],
+                                                   feed_dict={
+                                                       self.x: batch_x,
+                                                       self.y: batch_y
+                                                   })
+                bar.message = 'loss: {0:.8f} acc: {1:.3f}'.format(loss, acc)
+                bar.next()
+            bar.finish()
 
     def predict(self, x):
         results = self.sess.run([self.preds], feed_dict={self.x: x})
