@@ -15,15 +15,16 @@ FilterDesc = Tuple[int, List[int], int]
 
 
 class UNet:
-    learning_rate = 0.5
-    nb_iters = 100000
-    input_size = INPUT_SIZE
-    downconv_filters = DOWNCONV_FILTERS
-    upconv_filters = UPCONV_FILTERS
+    def _init_defaults(self):
+        self.learning_rate = 0.5
+        self.nb_iters = 100000
+        self.input_size = INPUT_SIZE
+        self.downconv_filters = DOWNCONV_FILTERS
+        self.upconv_filters = UPCONV_FILTERS
 
-    downconv_layers = []
-    downpool_layers = []
-    upconv_layers = []
+        self.downconv_layers = []
+        self.downpool_layers = []
+        self.upconv_layers = []
 
     def __init__(self,
                  sess,
@@ -32,6 +33,8 @@ class UNet:
                  input_size: Optional[List[int]] = None,
                  downconv_filters: Optional[List[FilterDesc]] = None,
                  upconv_filters: Optional[List[FilterDesc]] = None):
+        self._init_defaults()
+
         self.sess = sess
         if learning_rate:
             self.learning_rate = learning_rate
@@ -53,10 +56,10 @@ class UNet:
         )
         console_handler = logging.StreamHandler()
         console_handler.setFormatter(formatter)
-        file_handler = logging.FileHandler(log_file)
-        file_handler.setFormatter(formatter)
+        # file_handler = logging.FileHandler(log_file)
+        # file_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
-        self.logger.addHandler(file_handler)
+        # self.logger.addHandler(file_handler)
 
         self._create_model()
 
@@ -70,8 +73,8 @@ class UNet:
             filters_count, kernel_size, layers_repeat = self.downconv_filters[layer_no]
             for count in range(layers_repeat):
                 # Weights initialization (std. dev = sqrt(2 / N))
-                cur_shape = tuple(map(int, signal.get_shape()))
-                inputs = cur_shape[1] * cur_shape[2] * cur_shape[3]
+                cur_shape = tuple(map(int, signal.get_shape()[1:]))
+                inputs = cur_shape[0] * cur_shape[1] * cur_shape[2]
                 w_init = tf.initializers.random_normal(stddev=sqrt(2 / inputs))
                 # Convolutional layer.
                 downconv_layer = tf.layers.conv2d(signal,
@@ -99,8 +102,8 @@ class UNet:
             filters_count, kernel_size, layer_repeat = self.upconv_filters[layer_no]
             for count in range(layer_repeat):
                 # Weights initialization (std. dev = sqrt(2 / N)).
-                cur_shape = tuple(map(int, signal.get_shape()))
-                inputs = cur_shape[1] * cur_shape[2] * cur_shape[3]
+                cur_shape = tuple(map(int, signal.get_shape()[1:]))
+                inputs = cur_shape[0] * cur_shape[1] * cur_shape[2]
                 w_init = tf.initializers.random_normal(stddev=sqrt(2 / inputs))
                 # Convolutional layer.
                 upconv_layer = tf.layers.conv2d(signal,
@@ -122,8 +125,8 @@ class UNet:
                 upconv_layer = batch_norm
             # Upsampling layer.
             if layer_no < len(self.downconv_layers):
-                cur_shape = tuple(map(int, upconv_layer.get_shape()))
-                new_shape = (cur_shape[0], cur_shape[1] * POOL_SIZE, cur_shape[2] * POOL_SIZE, cur_shape[3])
+                cur_shape = tuple(map(int, upconv_layer.get_shape()[1:]))
+                new_shape = (-1, cur_shape[0] * POOL_SIZE, cur_shape[1] * POOL_SIZE, cur_shape[2])
                 self.logger.info((cur_shape, new_shape))
                 uppooling_layer = tf.image.resize_nearest_neighbor(images=upconv_layer,
                                                                    size=new_shape[1:3])
@@ -142,8 +145,8 @@ class UNet:
         self.train_op = tf.train.MomentumOptimizer(self.learning_rate, momentum=0.9).minimize(self.loss)
 
     def _create_model(self):
-        self.x = tf.placeholder(tf.float32, [-1] + self.input_size + [3])
-        self.y = tf.placeholder(tf.float32, [-1] + self.input_size + [1])
+        self.x = tf.placeholder(tf.float32, [None] + self.input_size + [3])
+        self.y = tf.placeholder(tf.float32, [None] + self.input_size + [1])
 
         self._add_downconv_layers()
         self._add_upconv_layers()
@@ -179,5 +182,4 @@ if __name__ == '__main__':
     with tf.Session() as sess:
         net = UNet(sess,
                    learning_rate=0.1)
-        net.train()
     pass
