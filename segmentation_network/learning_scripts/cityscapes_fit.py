@@ -97,8 +97,15 @@ class CityscapesLoader:
 
 if __name__ == '__main__':
     # x, y = CityscapesLoader.random_sample_from_city('zurich')
-    xs, ys = CityscapesLoader.load_city('zurich')
+    xs, ys = [], []
+    for city in CITIES_TRAIN:
+        _xs, _ys = CityscapesLoader.load_city(city)
+        xs.append(_xs)
+        ys.append(_ys)
+    xs = np.concatenate(xs)
+    ys = np.concatenate(ys)
     with tf.Session() as sess:
         net = UNet(sess,
                    learning_rate=0.01)
         net.fit(xs, ys, nb_epochs=500)
+        net.save()

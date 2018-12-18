@@ -158,7 +158,7 @@ class UNet:
         self.saver = tf.train.Saver()
         try:
             self.saver.restore(self.sess, SAVED_MODEL_PATH)
-        except tf.errors.InvalidArgumentError:
+        except (tf.errors.NotFoundError, tf.errors.InvalidArgumentError):
             # Initializes variables.
             tf.global_variables_initializer().run()
 
@@ -172,14 +172,14 @@ class UNet:
                 batch_x = x[iter * mb_size: (iter + 1) * mb_size]
                 batch_y = y[iter * mb_size: (iter + 1) * mb_size]
                 loss, acc, _, output, gt = self.sess.run([self.loss,
-                                                    self.accuracy,
-                                                    self.train_op,
-                                                    self.preds,
-                                                    self.labels],
-                                                   feed_dict={
-                                                       self.x: batch_x,
-                                                       self.y: batch_y
-                                                   })
+                                                          self.accuracy,
+                                                          self.train_op,
+                                                          self.preds,
+                                                          self.labels],
+                                                         feed_dict={
+                                                            self.x: batch_x,
+                                                            self.y: batch_y
+                                                         })
                 bar.message = 'loss: {0:.8f} acc: {1:.3f}'.format(loss, acc)
                 bar.next()
             bar.finish()
@@ -188,7 +188,7 @@ class UNet:
         results = self.sess.run([self.preds], feed_dict={self.x: x})
         return results[0]
 
-    def _save(self):
+    def save(self):
         self.saver.save(self.sess, SAVED_MODEL_PATH)
 
 
@@ -196,4 +196,5 @@ if __name__ == '__main__':
     with tf.Session() as sess:
         net = UNet(sess,
                    learning_rate=0.1)
+        net.save()
     pass
