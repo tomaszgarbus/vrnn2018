@@ -104,6 +104,8 @@ if __name__ == '__main__':
         ys.append(_ys)
     xs = np.concatenate(xs)
     ys = np.concatenate(ys)
+    np.save("cityscapes_xs.npy", xs)
+    np.save("cityscapes_ys.npy", ys)
     with tf.Session() as sess:
         net = UNet(sess,
                    learning_rate=0.01)

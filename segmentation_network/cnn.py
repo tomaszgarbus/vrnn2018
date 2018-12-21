@@ -160,6 +160,7 @@ class UNet:
             self.saver.restore(self.sess, SAVED_MODEL_PATH)
         except (tf.errors.NotFoundError, tf.errors.InvalidArgumentError):
             # Initializes variables.
+            print("Initializing variables (model checkpoint not found)")
             tf.global_variables_initializer().run()
 
     def fit(self, x, y, mb_size=2, nb_epochs=1):
@@ -168,6 +169,7 @@ class UNet:
             logging.info("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
             iters = int(ceil(len(x)/mb_size))
             bar = Bar(max=iters)
+            sum_accs = 0.
             for iter in range(iters):
                 batch_x = x[iter * mb_size: (iter + 1) * mb_size]
                 batch_y = y[iter * mb_size: (iter + 1) * mb_size]
@@ -180,9 +182,11 @@ class UNet:
                                                             self.x: batch_x,
                                                             self.y: batch_y
                                                          })
-                bar.message = 'loss: {0:.8f} acc: {1:.3f}'.format(loss, acc)
+                sum_accs += acc
+                bar.message = 'loss: {0:.8f} acc: {1:.4f} mean_acc: {1:.4f}'.format(loss, acc, sum_accs/(iter+1))
                 bar.next()
             bar.finish()
+            self.save()
 
     def predict(self, x):
         results = self.sess.run([self.preds], feed_dict={self.x: x})
