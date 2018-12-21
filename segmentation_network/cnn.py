@@ -183,7 +183,7 @@ class UNet:
                                                             self.y: batch_y
                                                          })
                 sum_accs += acc
-                bar.message = 'loss: {0:.8f} acc: {1:.4f} mean_acc: {1:.4f}'.format(loss, acc, sum_accs/(iter+1))
+                bar.message = 'loss: {0:.8f} acc: {1:.4f} mean_acc: {2:.4f}'.format(loss, acc, sum_accs/(iter+1))
                 bar.next()
             bar.finish()
             self.save()
