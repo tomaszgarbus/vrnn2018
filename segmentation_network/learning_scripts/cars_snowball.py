@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from segmentation_network.cnn import UNet
 from segmentation_network.constants import INPUT_SIZE
 from segmentation_network.learning_scripts.cars_fit import CarsLoader
+from segmentation_network.learning_scripts.cars_snowball_labels_editor import LabelsEditor
 
 # Path to the training set from Car dataset.
 X_PATH_TRAIN = 'data/cars_train'
@@ -61,12 +62,24 @@ class CarsSnowball:
         plt.imshow(img_arr_with_filter)
         plt.show()
 
-        print("Was this car labeled correctly? [y/r/N]")
+        print("Was this car labeled correctly? [y/c/N]")
         response = input().strip()
         if response == 'y' or response == 'Y':
             CarsSnowball.store_labels(file, out, input_img.size[:2])
             xs = np.concatenate([xs, np.array([img_arr])])
             ys = np.concatenate([ys, out])
+        elif response == 'c' or response == 'C':
+            editor = LabelsEditor(img_arr, out)
+            plt.imshow(np.reshape(out, INPUT_SIZE))
+            plt.show()
+            print("Save this label? [y/N]")
+            response = input().strip()
+            if response == 'y' or response == 'Y':
+                CarsSnowball.store_labels(file, out, input_img.size[:2])
+                xs = np.concatenate([xs, np.array([img_arr])])
+                ys = np.concatenate([ys, out])
+            else:
+                pass
         elif response == 'n' or response == 'N':
             pass
         else:
