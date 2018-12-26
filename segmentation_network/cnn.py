@@ -171,6 +171,12 @@ class UNet:
             bar = Bar(max=iters)
             sum_accs = 0.
             for iter in range(iters):
+                # Shuffle the training set.
+                order = list(range(x.shape[0]))
+                np.random.shuffle(order)
+                x = x[order]
+                y = y[order]
+
                 batch_x = x[iter * mb_size: (iter + 1) * mb_size]
                 batch_y = y[iter * mb_size: (iter + 1) * mb_size]
                 loss, acc, _, output, gt = self.sess.run([self.loss,
