@@ -33,3 +33,9 @@ cars_train  cars_train_labels  gtFine_trainvaltest  leftImg8bit_trainvaltest
   * `cnn.py` - implementation of UNet for segmentation
   * `constants.py` - constants for UNet
 * `segmentation_tmp` - trained network checkpoint. Please be careful when commiting any changes to this dir.
+
+## Labels format
+Label files are, like images, stored in .jpg files. Pixels containing cars should be black, pixels containing anything else should be white.
+
+## Segmentation
+For segmentation we are using UNet architecture. I have marked 50 first images from Cars dataset manually in gimp (using intelligent selection (`I`)), and 450 further random images using the snowball script.
