@@ -1,2 +1,3 @@
 .idea/
-data
+data/*
+!data/cars_train_labels

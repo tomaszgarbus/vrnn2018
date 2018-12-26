@@ -38,6 +38,7 @@ class CarsSnowball:
 
     @staticmethod
     def store_labels(filename: str, labels: np.ndarray, original_size: tuple):
+        print("Storing labels")
         img_arr = np.zeros(shape=(INPUT_SIZE[0], INPUT_SIZE[1], 3), dtype=np.int8)
         for x in range(INPUT_SIZE[0]):
             for y in range(INPUT_SIZE[1]):
@@ -78,8 +79,10 @@ class CarsSnowball:
                 CarsSnowball.store_labels(file, out, input_img.size[:2])
                 xs = np.concatenate([xs, np.array([img_arr])])
                 ys = np.concatenate([ys, out])
-            else:
+            elif response == 'n' or response == 'N':
                 pass
+            else:
+                print("Invalid response, assuming \"n\".")
         elif response == 'n' or response == 'N':
             pass
         else:
@@ -100,5 +103,5 @@ if __name__ == '__main__':
         snowball = CarsSnowball()
         while True:
             snowball.next(net)
-            net.fit(xs, ys, nb_epochs=1)
+            # net.fit(xs, ys, nb_epochs=1)
     pass
