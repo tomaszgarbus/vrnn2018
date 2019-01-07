@@ -20,6 +20,9 @@ Your `data` directory should look like this:
 cars_train  cars_train_labels  gtFine_trainvaltest  leftImg8bit_trainvaltest
 ```
 
+## Execution
+All Python scripts should be executed with the root repository directory as the working directory.
+
 ## Directory structure
 * `segmentation_network` - code of the segmentation network and learning scripts
   * `learning_scripts`
@@ -30,6 +33,7 @@ cars_train  cars_train_labels  gtFine_trainvaltest  leftImg8bit_trainvaltest
     * `cars_snowball_labels_editor.py`
     * `cityscapes_fit.py` - fits the network on Cityscapes dataset (reduced to only two labels: car & non-car).
     * `predictor.py` - takes a path to an image as argument and displays the labels (car & non-car)
+    * `generate_cut.py` - for all label images in `data/cars_train_labels`, cuts the corresponding input image from `data/cars_train` and writes the effect to `data/cars_train_cut`. If directory `data/cars_train_cut` does not exist, creates it.
   * `cnn.py` - implementation of UNet for segmentation
   * `constants.py` - constants for UNet
 * `segmentation_tmp` - trained network checkpoint. Please be careful when commiting any changes to this dir.
