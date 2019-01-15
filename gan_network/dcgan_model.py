@@ -38,6 +38,7 @@ class DCGans:
         print("Ładowanie może nie działać, patrz na kod dcgan_model.py/load_if_possible")
         self.generator = self.gan.layers[1]
         self.discriminator = self.gan.layers[2]
+        self.compile_networks()
         return True
 
     def build_generator(self):
@@ -102,9 +103,12 @@ class DCGans:
 
         return model
 
-    def build_gan(self):
+    def compile_networks(self):
         self.generator.compile(loss='binary_crossentropy', optimizer='adam')
         self.discriminator.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+
+    def build_gan(self):
+        self.compile_networks()
 
         z = Input(shape=(self.input_space_size,))
         img = self.generator(z)
