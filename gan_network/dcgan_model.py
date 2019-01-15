@@ -129,7 +129,7 @@ class DCGans:
         lgs = []
 
         for i in range(n_epoch):
-            for j in tqdm(range(batch_count), desc="Epoch " + str(n_epoch) if self.verbosity > 0 else "", smoothing=0):
+            for j in tqdm(range(batch_count), desc="Epoch " + str(i) if self.verbosity > 0 else "", smoothing=0):
                 # Input for the generator
                 noise_input = np.random.rand(batch_size, self.input_space_size)
 
@@ -140,7 +140,7 @@ class DCGans:
                 # these are the predicted images from the generator
                 predictions = self.generator.predict(noise_input, batch_size=batch_size)
 
-                if j % 10 == 0:
+                if j % 100 == 0:
                     show_images(predictions)
 
                 # the discriminator takes in the real images and the generated images
