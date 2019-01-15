@@ -1,6 +1,7 @@
 from gan_network.dcgan_model import  DCGans
 from gan_network.preprocess import Preprocess
 from tools.visualise import show_images
+import numpy as np
 
 
 if __name__ == '__main__':

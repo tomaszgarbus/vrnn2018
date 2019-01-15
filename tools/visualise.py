@@ -4,7 +4,6 @@ import math
 
 
 def show_images(imgs):
-    print("Ruszam, " + str(imgs.shape))
     imgs = (imgs*255).astype(int)
     rows = math.ceil(math.sqrt(len(imgs)))
     cols = np.ceil(len(imgs) / float(rows))
