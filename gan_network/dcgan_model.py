@@ -121,9 +121,12 @@ class DCGans:
             gan.summary()
         return gan
 
-    def fit(self, dataset, n_epoch=1, batch_size=16):
+    def fit(self, dataset, n_epoch=10, batch_size=16):
 
         batch_count = dataset.shape[0] // batch_size
+
+        lds = []
+        lgs = []
 
         for i in range(n_epoch):
             for j in tqdm(range(batch_count), desc="Epoch " + str(n_epoch) if self.verbosity > 0 else "", smoothing=0):
@@ -148,13 +151,19 @@ class DCGans:
 
                 # Let's train the discriminator
                 self.discriminator.trainable = True
-                self.discriminator.train_on_batch(X, y_discriminator)
+                ldisc = self.discriminator.train_on_batch(X, y_discriminator)
 
                 # Let's train the generator
                 noise_input = np.random.rand(batch_size, self.input_space_size)
                 y_generator = [1] * batch_size
                 self.discriminator.trainable = False
-                self.gan.train_on_batch(noise_input, y_generator)
+                lgen = self.gan.train_on_batch(noise_input, y_generator)
+
+                lds.append(ldisc)
+                lgs.append(lgen)
+                if j % 10 == 0:
+                    print("Last Losses: \nDiscriminator: " + str(lds[-10:]) + "\nGenerator: " + str(lgs[-10:]) + "\n")
+
             self.save()
 
     def generate_image(self, seed):
