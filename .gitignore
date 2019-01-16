@@ -3,5 +3,6 @@ data/*
 !data/cars_train_labels
 gan_prep_cache
 */__pycache__
+*/__pycache__/*
 dc_model.h5
 be_model.h5
