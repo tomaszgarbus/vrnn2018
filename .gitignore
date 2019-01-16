@@ -2,3 +2,4 @@
 data/*
 !data/cars_train_labels
 gan_prep_cache
+*/__pycache__
