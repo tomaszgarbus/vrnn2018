@@ -84,10 +84,8 @@ class Preprocess:
             y = np.array(Image.open(y_path))
             y = CarsLoader.reduce_labels(y)
             cut = self.cut_car(x, y)
-
             new_car = self.pad_and_augment_image(cut)
-            #show_images(np.concatenate(2*new_car))
-            cars = cars + new_car
-        self.dataset = np.concatenate(cars)
+            cars.append(new_car)
+        self.dataset = np.concatenate([x for sublist in cars for x in sublist])
         self.save()
         return self.dataset

@@ -5,13 +5,13 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    preprocess = Preprocess()
+    preprocess = Preprocess(x_size=64, y_size=64, cache_file="gan_cache_64")
     dataset = preprocess.load_dataset()
 
     sample_dataset = dataset[np.random.randint(0, dataset.shape[0], size=9)]
     show_images(sample_dataset)
 
-    model = Began()
+    model = Began(img_size=64)
     model.fit(dataset)
 
     sample_gans = model.generate_random_images(9)
