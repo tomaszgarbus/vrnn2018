@@ -26,7 +26,7 @@ class Began:
         self.filename = filename_pref
         self.input_space_size = input_space_size
         self.filters = filters
-        self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
+        self.adam = Adam(lr=0.000001)  # lr: between 0.0001 and 0.00005
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -155,6 +155,7 @@ class Began:
                 # print(s)
 
                 # Now update k
+                old_k = self.k
                 self.k = self.k + self.kLambda * (self.gamma * d_loss_real - gan_loss)
                 self.k = min(max(self.k, self.epsilon), 1)
 
@@ -166,7 +167,7 @@ class Began:
 
                 if j % 20 == 0:
                     print("Global measure: " + str(m_global) + " d_loss: " + str(d_loss) + " gan_loss: " + str(gan_loss) +
-                              " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str(d_loss_gen) + "\n")
+                              " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str((-1/old_k) * d_loss_gen) + "\n")
 
             self.save()
 
