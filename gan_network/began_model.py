@@ -26,7 +26,7 @@ class Began:
         self.filename = filename_pref
         self.input_space_size = input_space_size
         self.filters = filters
-        self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
+        self.adam = Adam(lr=0.00005)  # lr: between 0.0001 and 0.00005
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -132,41 +132,44 @@ class Began:
             for j in trange:
 
                 noise_input_disc = np.random.uniform(-1, 1, (batch_size, self.input_space_size))
-                noise_input_gen = np.random.uniform(-1, 1, (batch_size * 2, self.input_space_size))
 
                 # Let's train the discriminator
                 # First on real images
+                x_gen = self.generator.predict(noise_input_disc)
                 image_batch = dataset[np.random.randint(0, dataset.shape[0], size=batch_size)]
                 x_real = image_batch
                 d_loss_real = self.discriminator.train_on_batch(x_real, x_real)
                 # Now on generated images
-                x_gen = self.generator.predict(noise_input_disc)
                 d_loss_gen = self.discriminator.train_on_batch(x_gen, x_gen, -self.k * np.ones(batch_size))
                 d_loss = d_loss_real + d_loss_gen
 
                 # Let's train the generator
-                # dl = list(map(lambda a: a.copy(), self.discriminator.get_weights()))
-                predictions = self.generator.predict(noise_input_gen, batch_size=batch_size)
-                gan_loss = self.gan.train_on_batch(noise_input_gen, predictions)
-                # newdl = self.discriminator.get_weights().copy()
-                # s = 0
-                # for w1,w2 in zip(dl, newdl):
-                #     s += np.linalg.norm(w1-w2)
-                # print(s)
+                for t in range(5):
+                    noise_input_gen = np.random.uniform(-1, 1, (batch_size * 2, self.input_space_size))
+                    # predictions = self.generator.predict(noise_input_gen, batch_size=batch_size)
+                    # self.gan.train_on_batch(noise_input_gen, predictions)
+                    predictions = self.gan.predict(noise_input_gen, batch_size=batch_size)
+                    self.generator.train_on_batch(noise_input_gen, predictions)
 
                 # Now update k
-                self.k = self.k + self.kLambda * (self.gamma * d_loss_real - gan_loss)
+                old_k = self.k
+                self.k = self.k + self.kLambda * (self.gamma * d_loss_real - d_loss_gen)
                 self.k = min(max(self.k, self.epsilon), 1)
 
                 # Calculate the global measure
-                m_global = d_loss + np.abs(self.gamma * d_loss_real - gan_loss)
+                m_global = d_loss_real + np.abs(self.gamma * d_loss_real - d_loss_gen)
 
                 if j % 100 == 0:
-                    show_images(predictions)
+                    d_real_predictions = self.discriminator.predict(x_real)
+                    d_gen_predictions = self.discriminator.predict(x_gen)
+                    show_images(d_real_predictions, title="D_real")
+                    show_images(d_gen_predictions, title="D_gen")
+                    show_images(predictions, title="G")
 
                 if j % 20 == 0:
-                    print("Global measure: " + str(m_global) + " d_loss: " + str(d_loss) + " gan_loss: " + str(gan_loss) +
-                              " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str(d_loss_gen) + "\n")
+                    print("Global measure: " + str(m_global) + " d_loss: " + str(d_loss) + # " gan_loss: " + str(gan_loss) +
+                              " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str((-1/old_k) * d_loss_gen) +
+                          " k: " + str(self.k) + "\n")
 
             self.save()
 
