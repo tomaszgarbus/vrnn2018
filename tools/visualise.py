@@ -3,7 +3,7 @@ import numpy as np
 import math
 
 
-def show_images(imgs):
+def show_images(imgs, title=""):
     imgs = (imgs*255).astype(int)
     rows = math.ceil(math.sqrt(len(imgs)))
     cols = np.ceil(len(imgs) / float(rows))
@@ -14,4 +14,5 @@ def show_images(imgs):
         plt.imshow(imgs[i, :, :, :])
         plt.axis('off')
         #plt.tight_layout()
+    plt.title(title)
     plt.show()
