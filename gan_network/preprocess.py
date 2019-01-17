@@ -12,9 +12,9 @@ from tools.visualise import show_images
 
 X_PATH_TRAIN = 'data/cars_train'
 Y_PATH_TRAIN = 'data/cars_train_labels'
-X_SIZE = 128
-Y_SIZE = 128
-CACHE_FILE = "gan_prep_cache"
+X_SIZE = 32
+Y_SIZE = 32
+CACHE_FILE = "gan_prep_cache_32"
 BACKGROUND_COLOR = 0  # 255 = white
 
 
@@ -61,6 +61,8 @@ class Preprocess:
         if os.path.isfile(self.cache_file):
             with open(self.cache_file, 'rb') as inp:
                 return pickle.load(inp)
+        if os.path.isfile(self.cache_file + '.npy'):
+            return np.load(self.cache_file + '.npy')
         return None
 
     def cut_car(self, image, mask):

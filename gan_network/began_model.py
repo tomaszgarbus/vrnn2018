@@ -19,7 +19,7 @@ class Began:
                  filename_pref="be_model",
                  img_size=128,
                  filters=128,
-                 gamma=0.5
+                 gamma=0.3
                  ):
         self.img_size = img_size
         self.verbosity = verbosity
@@ -27,6 +27,7 @@ class Began:
         self.input_space_size = input_space_size
         self.filters = filters
         self.adam = Adam(lr=0.00005)  # lr: between 0.0001 and 0.00005
+        self.adam_gen = Adam(lr=0.00005)
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -40,7 +41,7 @@ class Began:
 
         self.epsilon = K.epsilon()
         self.k = self.epsilon
-        self.kLambda = 0.001
+        self.kLambda = 0.0003
         self.gamma = gamma
 
     def save(self):
@@ -104,7 +105,7 @@ class Began:
         return Model(mod_input, x)
 
     def compile_networks(self):
-        self.generator.compile(loss='mean_absolute_error', optimizer=self.adam)
+        self.generator.compile(loss='mean_absolute_error', optimizer=self.adam_gen)
         self.discriminator.trainable = True
         self.discriminator.compile(loss='mean_absolute_error', optimizer=self.adam)
 
@@ -131,25 +132,23 @@ class Began:
             trange = tqdm(range(batch_count), desc="Epoch " + str(i) if self.verbosity > 0 else "", smoothing=0)
             for j in trange:
 
-                noise_input_disc = np.random.uniform(-1, 1, (batch_size, self.input_space_size))
-
                 # Let's train the discriminator
-                # First on real images
+                # On generated images
+                noise_input_disc = np.random.uniform(-1, 1, (batch_size, self.input_space_size))
                 x_gen = self.generator.predict(noise_input_disc)
+                d_loss_gen = self.discriminator.train_on_batch(x_gen, x_gen, -self.k * np.ones(batch_size))
+
+                # On real images
                 image_batch = dataset[np.random.randint(0, dataset.shape[0], size=batch_size)]
                 x_real = image_batch
                 d_loss_real = self.discriminator.train_on_batch(x_real, x_real)
-                # Now on generated images
-                d_loss_gen = self.discriminator.train_on_batch(x_gen, x_gen, -self.k * np.ones(batch_size))
+
                 d_loss = d_loss_real + d_loss_gen
 
                 # Let's train the generator
-                for t in range(5):
-                    noise_input_gen = np.random.uniform(-1, 1, (batch_size * 2, self.input_space_size))
-                    # predictions = self.generator.predict(noise_input_gen, batch_size=batch_size)
-                    # self.gan.train_on_batch(noise_input_gen, predictions)
-                    predictions = self.gan.predict(noise_input_gen, batch_size=batch_size)
-                    self.generator.train_on_batch(noise_input_gen, predictions)
+                noise_input_gen = np.random.uniform(-1, 1, (batch_size * 2, self.input_space_size))
+                predictions = self.gan.predict(noise_input_gen, batch_size=batch_size)
+                gen_loss = self.generator.train_on_batch(noise_input_gen, predictions)
 
                 # Now update k
                 old_k = self.k
@@ -162,12 +161,12 @@ class Began:
                 if j % 100 == 0:
                     d_real_predictions = self.discriminator.predict(x_real)
                     d_gen_predictions = self.discriminator.predict(x_gen)
-                    show_images(d_real_predictions, title="D_real")
-                    show_images(d_gen_predictions, title="D_gen")
-                    show_images(predictions, title="G")
+                    show_images(d_real_predictions, title="D_real", save_instead=False)
+                    show_images(d_gen_predictions, title="D_gen", save_instead=False)
+                    show_images(predictions, title="G", save_instead=False)
 
                 if j % 20 == 0:
-                    print("Global measure: " + str(m_global) + " d_loss: " + str(d_loss) + # " gan_loss: " + str(gan_loss) +
+                    print("Global measure: " + str(m_global) + " d_loss: " + str(d_loss) + " gen_loss: " + str(gen_loss) +
                               " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str((-1/old_k) * d_loss_gen) +
                           " k: " + str(self.k) + "\n")
 

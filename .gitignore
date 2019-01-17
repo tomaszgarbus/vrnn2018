@@ -10,3 +10,5 @@ gan_prep_cache_32
 */__pycache__/*
 dc_model.h5
 be_model.h5
+logs
+logs/*

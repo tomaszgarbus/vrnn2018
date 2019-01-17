@@ -12,7 +12,7 @@ if __name__ == '__main__':
     show_images(sample_dataset)
 
     model = Began(gamma=0.3, filters=64, img_size=32)
-    model.fit(dataset, batch_size=8)
+    model.fit(dataset, batch_size=8, n_epoch=2000)
 
     sample_gans = model.generate_random_images(9)
     show_images(sample_gans)
