@@ -11,8 +11,8 @@ if __name__ == '__main__':
     sample_dataset = dataset[np.random.randint(0, dataset.shape[0], size=9)]
     show_images(sample_dataset)
 
-    model = Began(img_size=64)
-    model.fit(dataset)
+    model = Began(img_size=64, gamma=0.7, filters=64)
+    model.fit(dataset, batch_size=4)
 
     sample_gans = model.generate_random_images(9)
     show_images(sample_gans)

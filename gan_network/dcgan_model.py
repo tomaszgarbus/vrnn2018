@@ -43,25 +43,25 @@ class DCGans:
 
     def build_generator(self):
         model = Sequential()
-        model.add(Dense(8 * 8 * 512, use_bias=False, input_shape=(self.input_space_size,)))
+        model.add(Dense(8 * 8 * 256, use_bias=False, input_shape=(self.input_space_size,)))
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
-        model.add(Reshape((8, 8, 512)))
-        assert model.output_shape == (None, 8, 8, 512)
-
-        model.add(Conv2DTranspose(256, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 16, 16, 256)
-        model.add(BatchNormalization())
-        model.add(LeakyReLU())
+        model.add(Reshape((8, 8, 256)))
+        assert model.output_shape == (None, 8, 8, 256)
 
         model.add(Conv2DTranspose(128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 32, 32, 128)
+        assert model.output_shape == (None, 16, 16, 128)
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
         model.add(Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 64, 64, 64)
+        assert model.output_shape == (None, 32, 32, 64)
+        model.add(BatchNormalization())
+        model.add(LeakyReLU())
+
+        model.add(Conv2DTranspose(32, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        assert model.output_shape == (None, 64, 64, 32)
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
@@ -104,8 +104,8 @@ class DCGans:
         return model
 
     def compile_networks(self):
-        self.generator.compile(loss='binary_crossentropy', optimizer='adam')
-        self.discriminator.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+        self.generator.compile(loss='binary_crossentropy', optimizer=Adam())
+        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
     def build_gan(self):
         self.compile_networks()
@@ -140,7 +140,7 @@ class DCGans:
                 # these are the predicted images from the generator
                 predictions = self.generator.predict(noise_input, batch_size=batch_size)
 
-                if j % 100 == 0:
+                if j % 10 == 0:
                     show_images(predictions)
 
                 # the discriminator takes in the real images and the generated images
@@ -157,11 +157,12 @@ class DCGans:
                 noise_input = np.random.rand(batch_size, self.input_space_size)
                 y_generator = [1] * batch_size
                 self.discriminator.trainable = False
-                lgen = self.gan.train_on_batch(noise_input, y_generator)
+                if j %2 == 0:
+                    lgen = self.gan.train_on_batch(noise_input, y_generator)
 
                 lds.append(ldisc)
                 lgs.append(lgen)
-                if j % 10 == 0:
+                if j % 100 == 0:
                     print("Last Losses: \nDiscriminator: " + str(lds[-10:]) + "\nGenerator: " + str(lgs[-10:]) + "\n")
 
             self.save()

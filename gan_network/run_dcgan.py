@@ -12,7 +12,7 @@ if __name__ == '__main__':
     show_images(sample_dataset)
 
     model = DCGans()
-    model.fit(dataset)
+    model.fit(dataset, n_epoch=30, batch_size=8)
 
     sample_gans = model.generate_random_images(9)
     show_images(sample_gans)
