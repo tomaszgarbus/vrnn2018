@@ -1,7 +1,7 @@
 from keras.datasets import mnist
 from keras.models import Model, Sequential
 from keras.layers import *
-from keras.optimizers import Adam
+from keras.optimizers import Adam, SGD
 from tqdm import tqdm
 from keras.layers.advanced_activations import LeakyReLU
 from keras.models import load_model
@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import os.path
 from tools.visualise import show_images
 from keras.layers.convolutional import Convolution2D, UpSampling2D
+from keras import backend as bkeras
 
 
 class Began:
@@ -110,7 +111,6 @@ class Began:
 
     def build_gan(self):
         self.compile_networks()
-
         z = Input(shape=(self.input_space_size,))
         img = self.generator(z)
         self.discriminator.trainable = False
@@ -119,6 +119,26 @@ class Began:
         gan.compile(loss='mean_absolute_error', optimizer=self.adam)
         self.discriminator.trainable = True
         return gan
+
+    def find_code_for_image(self, img, iterations=1000, log_for=100, loss_eps = 0.01):
+        self.generator.trainable = False
+        dummy_input = np.random.uniform(-1, 1, (1, self.input_space_size))
+        dummy_input_layer = Input(shape=(self.input_space_size,))
+        input_to_fit = Dense(self.input_space_size)(dummy_input_layer)
+        last = self.generator(input_to_fit)
+        optimizer = Model(dummy_input_layer, last)
+        optimizer.compile(loss='mean_absolute_error', optimizer='SGD')
+        for i in range(iterations):
+            loss = optimizer.train_on_batch(dummy_input, img)
+            if loss < loss_eps:
+                break
+            if i % log_for == 0:
+                print("current loss: " + str(loss))
+        show_lay = Model(dummy_input_layer, input_to_fit)
+        show_lay.compile(loss='mean_absolute_error', optimizer='SGD')  # dummy compile, only to call predict
+        optimized_code = show_lay.predict(dummy_input)
+        self.generator.trainable = True
+        return optimized_code
 
     def fit(self, dataset, n_epoch=10, batch_size=16):
 
