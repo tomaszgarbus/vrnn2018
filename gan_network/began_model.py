@@ -20,9 +20,13 @@ class Began:
                  filename_pref="be_model",
                  img_size=128,
                  filters=128,
-                 gamma=0.3
+                 gamma=0.3,
+                 log_stats_per=1,
+                 log_image_per=20
                  ):
         self.img_size = img_size
+        self.log_stats_per = log_stats_per
+        self.log_image_per = log_image_per
         self.verbosity = verbosity
         self.filename = filename_pref
         self.input_space_size = input_space_size
@@ -177,16 +181,17 @@ class Began:
 
                 # Calculate the global measure
                 m_global = d_loss_real + np.abs(self.gamma * d_loss_real - d_loss_gen)
+                gamma_real = d_loss_gen / d_loss_real
 
-                if j % 100 == 0:
+                if j % self.log_image_per == 0:
                     d_real_predictions = self.discriminator.predict(x_real)
                     d_gen_predictions = self.discriminator.predict(x_gen)
                     show_images(d_real_predictions, title="D_real", save_instead=False)
                     show_images(d_gen_predictions, title="D_gen", save_instead=False)
                     show_images(predictions, title="G", save_instead=False)
 
-                if j % 20 == 0:
-                    print("Global measure: " + str(m_global) + " d_loss: " + str(d_loss) + " gen_loss: " + str(gen_loss) +
+                if j % self.log_stats_per == 0:
+                    print("Global measure: " + str(m_global) + " gamma_real: " + str(gamma_real) + " d_loss: " + str(d_loss) + " gen_loss: " + str(gen_loss) +
                               " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str((-1/old_k) * d_loss_gen) +
                           " k: " + str(self.k) + "\n")
 
