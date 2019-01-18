@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import os
+import datetime
 
 
-def show_images(imgs, title=""):
+def show_images(imgs, title="", save_instead=False):
     imgs = (imgs*255).astype(int)
     rows = math.ceil(math.sqrt(len(imgs)))
     cols = np.ceil(len(imgs) / float(rows))
@@ -15,4 +17,10 @@ def show_images(imgs, title=""):
         plt.axis('off')
         #plt.tight_layout()
     plt.title(title)
-    plt.show()
+    if not save_instead:
+        plt.show()
+    else:
+        if not os.path.isdir('logs'):
+            os.makedirs('logs')
+        fname = 'logs/' + title + str(datetime.datetime.now()) + '.jpg'
+        plt.savefig(fname)
