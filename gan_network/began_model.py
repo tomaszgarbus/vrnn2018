@@ -11,6 +11,7 @@ import os.path
 from tools.visualise import show_images
 from keras.layers.convolutional import Convolution2D, UpSampling2D
 from keras import backend as bkeras
+import sys
 
 
 class Began:
@@ -31,8 +32,8 @@ class Began:
         self.filename = filename_pref
         self.input_space_size = input_space_size
         self.filters = filters
-        self.adam = Adam(lr=0.00005)  # lr: between 0.0001 and 0.00005
-        self.adam_gen = Adam(lr=0.00005)
+        self.adam = Adam(lr=0.00001)  # lr: between 0.0001 and 0.00005
+        self.adam_gen = Adam(lr=0.00001)
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -46,11 +47,17 @@ class Began:
 
         self.epsilon = K.epsilon()
         self.k = self.epsilon
-        self.kLambda = 0.0003
+        if os.path.isfile('k.txt'):
+            with open('k.txt', 'r') as k_file:
+                self.k = float(k_file.read().split('\n')[0].strip())
+        self.kLambda = 0.001
         self.gamma = gamma
 
     def save(self):
         self.gan.save(self.filename + ".h5")
+        k_file = open('k.txt', 'a')
+        k_file.write(str(self.k))
+        k_file.close()
 
     def load_if_possible(self):
         filepath = self.filename + ".h5"
@@ -161,6 +168,7 @@ class Began:
                 noise_input_disc = np.random.uniform(-1, 1, (batch_size, self.input_space_size))
                 x_gen = self.generator.predict(noise_input_disc)
                 d_loss_gen = self.discriminator.train_on_batch(x_gen, x_gen, -self.k * np.ones(batch_size))
+                d_loss_gen = d_loss_gen * (-1./self.k)
 
                 # On real images
                 image_batch = dataset[np.random.randint(0, dataset.shape[0], size=batch_size)]
@@ -175,7 +183,6 @@ class Began:
                 gen_loss = self.generator.train_on_batch(noise_input_gen, predictions)
 
                 # Now update k
-                old_k = self.k
                 self.k = self.k + self.kLambda * (self.gamma * d_loss_real - d_loss_gen)
                 self.k = min(max(self.k, self.epsilon), 1)
 
@@ -186,14 +193,16 @@ class Began:
                 if j % self.log_image_per == 0:
                     d_real_predictions = self.discriminator.predict(x_real)
                     d_gen_predictions = self.discriminator.predict(x_gen)
-                    show_images(d_real_predictions, title="D_real", save_instead=False)
-                    show_images(d_gen_predictions, title="D_gen", save_instead=False)
-                    show_images(predictions, title="G", save_instead=False)
+                    show_images(d_real_predictions, title="D_real", save_instead=True)
+                    show_images(d_gen_predictions, title="D_gen", save_instead=True)
+                    show_images(predictions, title="G", save_instead=True)
 
                 if j % self.log_stats_per == 0:
-                    print("Global measure: " + str(m_global) + " gamma_real: " + str(gamma_real) + " d_loss: " + str(d_loss) + " gen_loss: " + str(gen_loss) +
-                              " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str((-1/old_k) * d_loss_gen) +
+                    print("Global measure: " + str(m_global) + " gamma_real: " + str(gamma_real) +
+                          " d_loss: " + str(d_loss) + " gen_loss: " + str(gen_loss) +
+                          " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str(d_loss_gen) +
                           " k: " + str(self.k) + "\n")
+                    sys.stdout.flush()
 
             self.save()
 
