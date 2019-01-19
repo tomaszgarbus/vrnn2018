@@ -54,16 +54,18 @@ class CarsLoader:
 
 
     @staticmethod
-    def load_set_with_labels(x_path, y_path):
-        x_files = CarsLoader.list_files_in_directory(X_PATH_TRAIN)
-        y_files = CarsLoader.list_files_in_directory(Y_PATH_TRAIN)
+    def load_set_with_labels(xs_path, ys_path):
+        x_files = CarsLoader.list_files_in_directory(xs_path)
+        y_files = CarsLoader.list_files_in_directory(ys_path)
         xs = []
         ys = []
         for y_file in y_files:
             assert y_file in x_files
-            x_path = os.path.join(X_PATH_TRAIN, y_file)
-            y_path = os.path.join(Y_PATH_TRAIN, y_file)
+            x_path = os.path.join(xs_path, y_file)
+            y_path = os.path.join(ys_path, y_file)
             x = np.array(PIL.Image.open(x_path).resize(INPUT_SIZE))
+            if x.shape != (INPUT_SIZE[0], INPUT_SIZE[1], 3):
+              continue
             x = CarsLoader.normalize_pixels(x)
             y = np.array(PIL.Image.open(y_path).resize(INPUT_SIZE))
             y = CarsLoader.reduce_labels(y)
@@ -82,3 +84,4 @@ class CarsLoader:
 
     def __init__(self):
         pass
+
