@@ -78,8 +78,11 @@ class CarsLoader:
 
     @staticmethod
     def load_data():
+        print("Loading training data...")
         train_x, train_y = CarsLoader.load_set_with_labels(X_PATH_TRAIN, Y_PATH_TRAIN)
+        print("Loading validation data...")
         test_x, test_y = CarsLoader.load_set_with_labels(X_PATH_TEST, Y_PATH_TEST)
+        print("All data loaded!")
         return train_x, train_y, test_x, test_y
 
     def __init__(self):

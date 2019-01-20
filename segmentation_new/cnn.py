@@ -50,10 +50,10 @@ class FCN32:
 
 
     def load(self):
-        print("Trying to load the model from " + SAVED_MODEL_PATH)
+        print("Loading the model from " + SAVED_MODEL_PATH + " ...")
         try:
             model = load_model(filepath=SAVED_MODEL_PATH)
-            print("Loaded model!")
+            print("Model loaded!")
         except:
             print("Model not found!")
             model = None
@@ -76,7 +76,9 @@ class FCN32:
 
 
     def save(self):
+        print("Saving model to " + SAVED_MODEL_PATH + "...")
         self.model.save(SAVED_MODEL_PATH)
+        print("Model saved!")
 
 
     def summary(self):
