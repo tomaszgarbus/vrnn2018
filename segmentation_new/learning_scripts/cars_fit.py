@@ -6,5 +6,5 @@ if __name__ == '__main__':
     train_x, train_y, test_x, test_y = CarsLoader.load_data()
 
     net = FCN32()
-    net.fit(train_x, train_y, test_x, test_y, nb_epochs=30)
+    net.fit(train_x, train_y, test_x, test_y, nb_epochs=5)
     net.save()

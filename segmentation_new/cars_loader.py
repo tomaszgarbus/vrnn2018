@@ -49,7 +49,7 @@ class CarsLoader:
         reduced = np.ndarray(shape=(labels.shape[0], labels.shape[1], 1))
         for x in range(labels.shape[0]):
             for y in range(labels.shape[1]):
-                reduced[x, y, 0] = 1 if reduced[x, y, 1] > reduced[x, y, 0] else 0
+                reduced[x, y, 0] = 1 if labels[x, y, 1] > labels[x, y, 0] else 0
         return reduced
 
 

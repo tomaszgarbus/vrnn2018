@@ -50,9 +50,12 @@ class FCN32:
 
 
     def load(self):
+        print("Trying to load the model from " + SAVED_MODEL_PATH)
         try:
             model = load_model(filepath=SAVED_MODEL_PATH)
+            print("Loaded model!")
         except:
+            print("Model not found!")
             model = None
         return model
 

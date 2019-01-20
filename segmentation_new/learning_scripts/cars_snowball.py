@@ -22,7 +22,6 @@ class CarsSnowball:
         img.save(os.path.join(Y_PATH_TRAIN, filename))
 
     def next(self, net: FCN32):
-        global xs, ys
         file = self.unlabeled_files[0]
         x_path = os.path.join(X_PATH_TRAIN, file)
         input_img = PIL.Image.open(x_path)
@@ -42,8 +41,6 @@ class CarsSnowball:
         response = input().strip()
         if response == 'y' or response == 'Y':
             CarsSnowball.store_labels(file, out, input_img.size[:2])
-            xs = np.concatenate([xs, np.array([img_arr])])
-            ys = np.concatenate([ys, out])
         elif response == 'c' or response == 'C':
             editor = LabelsEditor(img_arr, out)
             plt.imshow(np.reshape(out, INPUT_SIZE))
@@ -52,8 +49,6 @@ class CarsSnowball:
             response = input().strip()
             if response == 'y' or response == 'Y':
                 CarsSnowball.store_labels(file, out, input_img.size[:2])
-                xs = np.concatenate([xs, np.array([img_arr])])
-                ys = np.concatenate([ys, out])
             elif response == 'n' or response == 'N':
                 pass
             else:
