@@ -91,8 +91,6 @@ class Preprocess:
             cut = self.cut_car(x, y)
             new_car = self.pad_and_augment_image(cut)
             cars.append(new_car)
-            plt.imshow(new_car[0].reshape((X_SIZE, Y_SIZE, 3)).astype(np.float32))
-            plt.show()
         self.dataset = np.concatenate([x for sublist in cars for x in sublist])
         self.save()
         return self.dataset
