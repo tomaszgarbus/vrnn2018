@@ -12,6 +12,7 @@ from tools.visualise import show_images
 from keras.layers.convolutional import Convolution2D, UpSampling2D
 from keras import backend as bkeras
 import sys
+from keras.initializers import he_normal
 
 
 class Began:
@@ -32,7 +33,7 @@ class Began:
         self.filename = filename_pref
         self.input_space_size = input_space_size
         self.filters = filters
-        self.adam = Adam(lr=0.00001)  # lr: between 0.0001 and 0.00005
+        self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
         self.adam_gen = Adam(lr=0.00001)
 
         if not self.load_if_possible():
@@ -55,7 +56,7 @@ class Began:
 
     def save(self):
         self.gan.save(self.filename + ".h5")
-        k_file = open('k.txt', 'a')
+        k_file = open('k.txt', 'w')
         k_file.write(str(self.k))
         k_file.close()
 
@@ -77,14 +78,18 @@ class Began:
         x = Convolution2D(3, 3, 3, activation='elu', border_mode="same")(mod_input)
 
         for i in range(1, layers):
-            x = Convolution2D(i * self.filters, 3, 3, activation='elu', border_mode="same")(x)
-            x = Convolution2D(i * self.filters, 3, 3, activation='elu', border_mode="same", subsample=(2, 2))(x)
+            x = Convolution2D(i * self.filters, 3, 3, activation='elu', border_mode="same",
+                              kernel_initializer=he_normal(11))(x)
+            x = Convolution2D(i * self.filters, 3, 3, activation='elu', border_mode="same", subsample=(2, 2),
+                              kernel_initializer=he_normal(12))(x)
 
-        x = Convolution2D(layers * self.filters, 3, 3, activation='elu', border_mode="same")(x)
-        x = Convolution2D(layers * self.filters, 3, 3, activation='elu', border_mode="same")(x)
+        x = Convolution2D(layers * self.filters, 3, 3, activation='elu', border_mode="same",
+                          kernel_initializer=he_normal(13))(x)
+        x = Convolution2D(layers * self.filters, 3, 3, activation='elu', border_mode="same",
+                          kernel_initializer=he_normal(14))(x)
 
         x = Reshape((layers * self.filters * init_dim ** 2,))(x)
-        x = Dense(self.input_space_size)(x)
+        x = Dense(self.input_space_size, kernel_initializer=he_normal(15))(x)
 
         return Model(mod_input, x)
 
@@ -96,15 +101,20 @@ class Began:
         x = Dense(self.filters * init_dim ** 2)(mod_input)
         x = Reshape((init_dim, init_dim, self.filters))(x)
 
-        x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same")(x)
-        x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same")(x)
+        x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same",
+                          kernel_initializer=he_normal(21))(x)
+        x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same",
+                          kernel_initializer=he_normal(22))(x)
 
         for i in range(layers):
             x = UpSampling2D(size=(2, 2))(x)
-            x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same")(x)
-            x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same")(x)
+            x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same",
+                              kernel_initializer=he_normal(23))(x)
+            x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same",
+                              kernel_initializer=he_normal(24))(x)
 
-        x = Convolution2D(3, 3, 3, activation='elu', border_mode="same")(x)
+        x = Convolution2D(3, 3, 3, activation='elu', border_mode="same",
+                          kernel_initializer=he_normal(25))(x)
 
         return Model(mod_input, x)
 

@@ -9,13 +9,15 @@ from itertools import product
 import pickle
 from tqdm import tqdm
 from tools.visualise import show_images
+import random
 
 X_PATH_TRAIN = 'data/cars_train'
 Y_PATH_TRAIN = 'data/cars_train_labels'
 X_SIZE = 32
 Y_SIZE = 32
-CACHE_FILE = "gan_prep_cache_32"
-BACKGROUND_COLOR = 0  # 255 = white
+CACHE_FILE = "gan_prep_cache_32_rand"
+BACKGROUND_COLOR = lambda: (0, 0, 0)  # 255 = white
+BACKGROUND_COLOR_RAND = lambda: (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
 
 class Preprocess:
@@ -25,9 +27,9 @@ class Preprocess:
                  y_size = Y_SIZE,
                  x_path=X_PATH_TRAIN,
                  y_path=Y_PATH_TRAIN,
-                 background_color=BACKGROUND_COLOR,
+                 background_color_fun=BACKGROUND_COLOR,
                  cache_file=CACHE_FILE):
-        self.background_color = background_color
+        self.background_color_fun = background_color_fun
         self.x_path = x_path
         self.y_path = y_path
         self.x_size = x_size
@@ -46,7 +48,7 @@ class Preprocess:
         delta_w = self.x_size - new_size[0]
         delta_h = self.y_size - new_size[1]
         padding = (delta_w // 2, delta_h // 2, delta_w - (delta_w // 2), delta_h - (delta_h // 2))
-        new_img = ImageOps.expand(pimg, padding, fill=tuple(3*[self.background_color]))
+        new_img = ImageOps.expand(pimg, padding, fill=self.current_bg_color)
         x = np.array(new_img).astype(np.float16) / 255
         assert x.shape == (self.x_size, self.y_size, 3)
         flipped = np.fliplr(x).reshape(1, self.x_size, self.y_size, 3)
@@ -69,7 +71,7 @@ class Preprocess:
         shape = image.shape
         assert shape[0] == mask.shape[0] and shape[1] == mask.shape[1]
         for (x, y, z) in product(*[range(shape[0]), range(shape[1]), range(shape[2])]):
-            image[x, y, z] = image[x, y, z] if mask[x, y] > .5 else self.background_color
+            image[x, y, z] = image[x, y, z] if mask[x, y] > .5 else self.current_bg_color[z]
         return image
 
     def load_dataset(self):
@@ -85,9 +87,12 @@ class Preprocess:
             x = np.array(Image.open(x_path))
             y = np.array(Image.open(y_path))
             y = CarsLoader.reduce_labels(y)
+            self.current_bg_color = self.background_color_fun()
             cut = self.cut_car(x, y)
             new_car = self.pad_and_augment_image(cut)
             cars.append(new_car)
+            plt.imshow(new_car[0].reshape((X_SIZE, Y_SIZE, 3)).astype(np.float32))
+            plt.show()
         self.dataset = np.concatenate([x for sublist in cars for x in sublist])
         self.save()
         return self.dataset
