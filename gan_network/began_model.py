@@ -13,6 +13,19 @@ from keras.layers.convolutional import Convolution2D, UpSampling2D
 from keras import backend as bkeras
 import sys
 from keras.initializers import he_normal
+from keras import backend as K
+
+
+def generator_loss(discriminator, variance_imp=0.1):
+    middle = discriminator.layers[1]
+
+    def loss(y_true, y_pred):
+        regular_loss = K.mean(K.abs(y_true - y_pred))
+#        //coder = K.function([y_pred], [middle.outputs[0]])
+        variance = K.var(y_pred, axis=0)
+        variance_loss = 1/K.mean(variance)
+        return regular_loss + variance_loss * variance_imp
+    return loss
 
 
 class Began:
@@ -89,7 +102,7 @@ class Began:
                           kernel_initializer=he_normal(14))(x)
 
         x = Reshape((layers * self.filters * init_dim ** 2,))(x)
-        x = Dense(self.input_space_size, kernel_initializer=he_normal(15))(x)
+        x = Dense(self.input_space_size, kernel_initializer=he_normal(15), name="coding_layer")(x)
 
         return Model(mod_input, x)
 
@@ -127,7 +140,7 @@ class Began:
         return Model(mod_input, x)
 
     def compile_networks(self):
-        self.generator.compile(loss='mean_absolute_error', optimizer=self.adam_gen)
+        self.generator.compile(loss=generator_loss(self.discriminator), optimizer=self.adam_gen)
         self.discriminator.trainable = True
         self.discriminator.compile(loss='mean_absolute_error', optimizer=self.adam)
 
