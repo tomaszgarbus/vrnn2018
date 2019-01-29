@@ -16,7 +16,7 @@ from keras.initializers import he_normal
 from keras import backend as K
 
 
-def generator_loss(discriminator, variance_imp=0.1):
+def generator_loss(discriminator, variance_imp=0.05):
     middle = discriminator.layers[1]
 
     def loss(y_true, y_pred):
@@ -26,6 +26,12 @@ def generator_loss(discriminator, variance_imp=0.1):
         variance_loss = 1/K.mean(variance)
         return regular_loss + variance_loss * variance_imp
     return loss
+
+
+def mapping_to_target_range( x, target_min=0, target_max=1):
+    x02 = K.tanh(x) + 1 # x in range(0,2)
+    scale = (target_max-target_min)/2.
+    return x02 * scale + target_min
 
 
 class Began:
@@ -126,7 +132,7 @@ class Began:
             x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same",
                               kernel_initializer=he_normal(24))(x)
 
-        x = Convolution2D(3, 3, 3, activation='elu', border_mode="same",
+        x = Convolution2D(3, 3, 3, activation=mapping_to_target_range, border_mode="same",
                           kernel_initializer=he_normal(25))(x)
 
         return Model(mod_input, x)
