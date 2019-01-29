@@ -8,6 +8,8 @@ from keras.models import load_model
 import numpy as np
 import matplotlib.pyplot as plt
 import os.path
+from random import shuffle
+import sys
 from tools.visualise import show_images
 
 
@@ -50,34 +52,25 @@ class DCGans:
         model.add(Reshape((8, 8, 256)))
         assert model.output_shape == (None, 8, 8, 256)
 
-        model.add(Conv2DTranspose(128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 16, 16, 128)
-        model.add(BatchNormalization())
-        model.add(LeakyReLU())
+        # model.add(Conv2DTranspose(128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        # assert model.output_shape == (None, 8, 8, 128)
+        # model.add(BatchNormalization())
+        # model.add(LeakyReLU())
 
         model.add(Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 32, 32, 64)
+        assert model.output_shape == (None, 16, 16, 64)
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
-        model.add(Conv2DTranspose(32, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 64, 64, 32)
-        model.add(BatchNormalization())
-        model.add(LeakyReLU())
-
-        model.add(Conv2DTranspose(3, (5, 5), strides=(2, 2), padding='same', use_bias=False, activation='sigmoid'))
-        assert model.output_shape == (None, 128, 128, 3)
+        model.add(Conv2DTranspose(3, (5, 5), strides=(2, 2), padding='same', use_bias=False,
+                                  activation='sigmoid'))
+        assert model.output_shape == (None, 32, 32, 3)
 
         return model
 
     def build_discriminator(self):
         model = Sequential()
-        model.add(Conv2D(64, (3, 3), padding='same', input_shape=(128, 128, 3)))
-        model.add(LeakyReLU())
-        model.add(Dropout(0.5))
-        model.add(MaxPooling2D((2, 2)))  # 64
-
-        model.add(Conv2D(64, (3, 3), padding='same'))
+        model.add(Conv2D(64, (3, 3), padding='same', input_shape=(32, 32, 3)))
         model.add(LeakyReLU())
         model.add(Dropout(0.5))
         model.add(MaxPooling2D((2, 2)))  # 32
@@ -104,7 +97,9 @@ class DCGans:
         return model
 
     def compile_networks(self):
+        self.discriminator.trainable = False
         self.generator.compile(loss='binary_crossentropy', optimizer=Adam())
+        self.discriminator.trainable = True
         self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(), metrics=['accuracy'])
 
     def build_gan(self):
@@ -125,13 +120,13 @@ class DCGans:
 
         batch_count = dataset.shape[0] // batch_size
 
-        lds = []
-        lgs = []
-
         for i in range(n_epoch):
+            lds = []
+            lgs = []
+            daccs = []
             for j in tqdm(range(batch_count), desc="Epoch " + str(i) if self.verbosity > 0 else "", smoothing=0):
                 # Input for the generator
-                noise_input = np.random.rand(batch_size, self.input_space_size)
+                noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
 
                 # getting random images from X_train of size=batch_size
                 # these are the real images that will be fed to the discriminator
@@ -140,9 +135,6 @@ class DCGans:
                 # these are the predicted images from the generator
                 predictions = self.generator.predict(noise_input, batch_size=batch_size)
 
-                if j % 10 == 0:
-                    show_images(predictions)
-
                 # the discriminator takes in the real images and the generated images
                 X = np.concatenate([predictions, image_batch])
 
@@ -150,20 +142,21 @@ class DCGans:
                 y_discriminator = [0] * batch_size + [1] * batch_size
 
                 # Let's train the discriminator
-                self.discriminator.trainable = True
                 ldisc = self.discriminator.train_on_batch(X, y_discriminator)
 
                 # Let's train the generator
-                noise_input = np.random.rand(batch_size, self.input_space_size)
+                noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
                 y_generator = [1] * batch_size
-                self.discriminator.trainable = False
-                if j %2 == 0:
+                if j%5 == 0:
                     lgen = self.gan.train_on_batch(noise_input, y_generator)
 
-                lds.append(ldisc)
+                lds.append(ldisc[0])
+                daccs.append(ldisc[1])
                 lgs.append(lgen)
-                if j % 100 == 0:
-                    print("Last Losses: \nDiscriminator: " + str(lds[-10:]) + "\nGenerator: " + str(lgs[-10:]) + "\n")
+            show_images(predictions, title='G', save_instead=True)
+            print("Mean Losses: \nDiscriminator: " + str(np.mean(lds)) + ", "
+                  + str(np.mean(daccs))+"\nGenerator: " + str(np.mean(lgs)) + "\n")
+            sys.stdout.flush()
 
             self.save()
 
