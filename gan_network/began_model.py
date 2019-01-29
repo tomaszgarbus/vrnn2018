@@ -16,15 +16,15 @@ from keras.initializers import he_normal
 from keras import backend as K
 
 
-def generator_loss(discriminator, variance_imp=0.05):
+def generator_loss(discriminator, variance_imp=0.1):
     middle = discriminator.layers[1]
 
     def loss(y_true, y_pred):
         regular_loss = K.mean(K.abs(y_true - y_pred))
 #        //coder = K.function([y_pred], [middle.outputs[0]])
         variance = K.var(y_pred, axis=0)
-        variance_loss = 1/K.mean(variance)
-        return regular_loss + variance_loss * variance_imp
+        variance_loss = K.mean(variance)
+        return regular_loss - (0.25 - variance_loss) * variance_imp
     return loss
 
 
