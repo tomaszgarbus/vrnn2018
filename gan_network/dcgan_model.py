@@ -109,7 +109,9 @@ class DCGans:
         img = self.generator(z)
         combined = self.discriminator(img)
         gan = Model(z, combined)
+        self.discriminator.trainable = False
         gan.compile(loss='binary_crossentropy', optimizer='adam')
+        self.discriminator.trainable = True
         if self.verbosity > 1:
             self.generator.summary()
             self.discriminator.summary()
@@ -147,7 +149,7 @@ class DCGans:
                 # Let's train the generator
                 noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
                 y_generator = [1] * batch_size
-                if j%5 == 0:
+                if j%1 == 0:
                     lgen = self.gan.train_on_batch(noise_input, y_generator)
 
                 lds.append(ldisc[0])
