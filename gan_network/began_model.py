@@ -207,8 +207,9 @@ class Began:
 
                 # Let's train the generator
                 noise_input_gen = np.random.uniform(-1, 1, (batch_size * 2, self.input_space_size))
-                predictions = self.gan.predict(noise_input_gen, batch_size=batch_size)
-                gen_loss = self.generator.train_on_batch(noise_input_gen, predictions)
+
+                predictions = self.generator.predict(noise_input_gen, batch_size=batch_size)
+                gen_loss = self.gan.train_on_batch(noise_input_gen, predictions)
 
                 # Now update k
                 self.k = self.k + self.kLambda * (self.gamma * d_loss_real - d_loss_gen)
