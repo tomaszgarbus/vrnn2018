@@ -1,4 +1,3 @@
-from keras.datasets import mnist
 from keras.models import Model, Sequential
 from keras.layers import *
 from keras.optimizers import Adam, SGD
@@ -8,15 +7,14 @@ from keras.models import load_model
 import numpy as np
 import matplotlib.pyplot as plt
 import os.path
-from tools.visualise import show_images
+from tools.visualise import show_images, ChartGenerator
 from keras.layers.convolutional import Convolution2D, UpSampling2D
 from keras import backend as bkeras
-import sys
 from keras.initializers import he_normal
 from keras import backend as K
 
 
-def generator_loss(discriminator, variance_imp=0.1):
+def generator_loss(discriminator, variance_imp=0.000001):
     middle = discriminator.layers[1]
 
     def loss(y_true, y_pred):
@@ -26,6 +24,12 @@ def generator_loss(discriminator, variance_imp=0.1):
         variance_loss = 1/K.mean(variance)
         return regular_loss + variance_loss * variance_imp
     return loss
+
+
+def mapping_to_target_range( x, target_min=0, target_max=1):
+    x02 = K.tanh(x) + 1 # x in range(0,2)
+    scale = (target_max-target_min)/2.
+    return x02 * scale + target_min
 
 
 class Began:
@@ -126,7 +130,7 @@ class Began:
             x = Convolution2D(self.filters, 3, 3, activation='elu', border_mode="same",
                               kernel_initializer=he_normal(24))(x)
 
-        x = Convolution2D(3, 3, 3, activation='elu', border_mode="same",
+        x = Convolution2D(3, 3, 3, activation=mapping_to_target_range, border_mode="same",
                           kernel_initializer=he_normal(25))(x)
 
         return Model(mod_input, x)
@@ -140,7 +144,7 @@ class Began:
         return Model(mod_input, x)
 
     def compile_networks(self):
-        self.generator.compile(loss=generator_loss(self.discriminator), optimizer=self.adam_gen)
+        self.generator.compile(loss='mean_absolute_error', optimizer=self.adam_gen)
         self.discriminator.trainable = True
         self.discriminator.compile(loss='mean_absolute_error', optimizer=self.adam)
 
@@ -181,6 +185,7 @@ class Began:
 
         lds = []
         lgs = []
+        chart = ChartGenerator()
 
         for i in range(n_epoch):
             trange = tqdm(range(batch_count), desc="Epoch " + str(i) if self.verbosity > 0 else "", smoothing=0)
@@ -212,20 +217,22 @@ class Began:
                 # Calculate the global measure
                 m_global = d_loss_real + np.abs(self.gamma * d_loss_real - d_loss_gen)
                 gamma_real = d_loss_gen / d_loss_real
+                variance = np.mean(np.var(predictions, axis=0))
+
+                if j % self.log_stats_per == 0:
+                    chart.log_values(batch_count*i+j, {
+                        'global_measure': m_global, 'gamma_real': gamma_real, 'd_loss': d_loss,
+                        'gen_loss': gen_loss, 'd_loss_real':d_loss_real, 'd_loss_gen': d_loss_gen,
+                        'k_value': self.k, 'variance': variance
+                    })
 
                 if j % self.log_image_per == 0:
+                    chart.show_chart()
                     d_real_predictions = self.discriminator.predict(x_real)
                     d_gen_predictions = self.discriminator.predict(x_gen)
                     show_images(d_real_predictions, title="D_real", save_instead=True)
                     show_images(d_gen_predictions, title="D_gen", save_instead=True)
                     show_images(predictions, title="G", save_instead=True)
-
-                if j % self.log_stats_per == 0:
-                    print("Global measure: " + str(m_global) + " gamma_real: " + str(gamma_real) +
-                          " d_loss: " + str(d_loss) + " gen_loss: " + str(gen_loss) +
-                          " d_loss_real: " + str(d_loss_real) + " d_loss_gen: " + str(d_loss_gen) +
-                          " k: " + str(self.k) + "\n")
-                    sys.stdout.flush()
 
             self.save()
 
