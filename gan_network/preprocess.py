@@ -15,7 +15,8 @@ X_PATH_TRAIN = 'data/cars_train'
 Y_PATH_TRAIN = 'data/cars_train_labels'
 X_SIZE = 32
 Y_SIZE = 32
-CACHE_FILE = "gan_prep_cache_32_rand"
+# CACHE_FILE = "gan_prep_cache_64"
+CACHE_FILE = "gan_prep_cache_32"
 BACKGROUND_COLOR = lambda: (0, 0, 0)  # 255 = white
 BACKGROUND_COLOR_RAND = lambda: (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
