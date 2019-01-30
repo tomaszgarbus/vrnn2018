@@ -51,7 +51,7 @@ class Began:
         self.input_space_size = input_space_size
         self.filters = filters
         self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
-        self.adam_gen = Adam(lr=0.00001)
+        self.adam_gen = Adam(lr=0.0005)
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -155,7 +155,7 @@ class Began:
         self.discriminator.trainable = False
         combined = self.discriminator(img)
         gan = Model(z, combined)
-        gan.compile(loss='mean_absolute_error', optimizer=self.adam)
+        gan.compile(loss='mean_absolute_error', optimizer=self.adam_gen)
         self.discriminator.trainable = True
         return gan
 
