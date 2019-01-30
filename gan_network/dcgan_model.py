@@ -12,6 +12,8 @@ from random import shuffle
 import sys
 from tools.visualise import show_images
 
+SIZE = 32
+
 
 class DCGans:
     def __init__(self,
@@ -45,32 +47,32 @@ class DCGans:
 
     def build_generator(self):
         model = Sequential()
-        model.add(Dense(8 * 8 * 256, use_bias=False, input_shape=(self.input_space_size,)))
+        model.add(Dense((SIZE // 4) ** 2 * 256, use_bias=False, input_shape=(self.input_space_size,)))
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
-        model.add(Reshape((8, 8, 256)))
-        assert model.output_shape == (None, 8, 8, 256)
+        model.add(Reshape((SIZE // 4, SIZE // 4, 256)))
+        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 256)
 
         # model.add(Conv2DTranspose(128, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        # assert model.output_shape == (None, 8, 8, 128)
+        # assert model.output_shape == (None, SIZE // 4, SIZE // 4, 128)
         # model.add(BatchNormalization())
         # model.add(LeakyReLU())
 
         model.add(Conv2DTranspose(64, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, 16, 16, 64)
+        assert model.output_shape == (None, SIZE // 2, SIZE // 2, 64)
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
         model.add(Conv2DTranspose(3, (5, 5), strides=(2, 2), padding='same', use_bias=False,
                                   activation='sigmoid'))
-        assert model.output_shape == (None, 32, 32, 3)
+        assert model.output_shape == (None, SIZE, SIZE, 3)
 
         return model
 
     def build_discriminator(self):
         model = Sequential()
-        model.add(Conv2D(64, (3, 3), padding='same', input_shape=(32, 32, 3)))
+        model.add(Conv2D(64, (3, 3), padding='same', input_shape=(SIZE, SIZE, 3)))
         model.add(LeakyReLU())
         model.add(Dropout(0.5))
         model.add(MaxPooling2D((2, 2)))  # 32
@@ -98,9 +100,9 @@ class DCGans:
 
     def compile_networks(self):
         self.discriminator.trainable = False
-        self.generator.compile(loss='binary_crossentropy', optimizer=Adam())
+        self.generator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5))
         self.discriminator.trainable = True
-        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(), metrics=['accuracy'])
+        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5), metrics=['accuracy'])
 
     def build_gan(self):
         self.compile_networks()
@@ -110,7 +112,7 @@ class DCGans:
         combined = self.discriminator(img)
         gan = Model(z, combined)
         self.discriminator.trainable = False
-        gan.compile(loss='binary_crossentropy', optimizer='adam')
+        gan.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5))
         self.discriminator.trainable = True
         if self.verbosity > 1:
             self.generator.summary()
@@ -149,7 +151,7 @@ class DCGans:
                 # Let's train the generator
                 noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
                 y_generator = [1] * batch_size
-                if j%1 == 0:
+                for z in range(3):
                     lgen = self.gan.train_on_batch(noise_input, y_generator)
 
                 lds.append(ldisc[0])
