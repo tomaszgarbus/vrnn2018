@@ -71,6 +71,7 @@ class CarsLoader:
             y = CarsLoader.reduce_labels(y)
             xs.append(x.reshape(1, INPUT_SIZE[0], INPUT_SIZE[1], 3))
             ys.append(y.reshape(1, INPUT_SIZE[0], INPUT_SIZE[1], 2))
+        xs = np.concatenate(xs)
         ys = np.concatenate(ys)
         return xs, ys
 

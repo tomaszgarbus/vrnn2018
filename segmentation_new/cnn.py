@@ -64,11 +64,11 @@ class FCN32:
         self.model.fit(train_x, train_y, epochs=nb_epochs, batch_size=mb_size, shuffle=True, validation_data=(val_x, val_y))
 
 
-    def predict(self, x):
+    def predict(self, xs):
         """
         Returns predictions as binary array.
         """
-        onehots = self.model.predict(x)
+        onehots = self.model.predict(xs)
         preds = []
         for i in range(onehots.shape[0]):
             preds.append(CarsLoader.onehot_to_binary(onehots[i]))

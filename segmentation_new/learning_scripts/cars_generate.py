@@ -1,8 +1,3 @@
-import numpy as np
-import PIL
-import os
-import matplotlib.pyplot as plt
-
 from segmentation_new.cnn import FCN32
 from segmentation_new.constants import *
 from segmentation_new.cars_loader import CarsLoader
