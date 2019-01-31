@@ -14,4 +14,5 @@ logs
 logs/*
 began_logs.txt
 *.npy
+segmentation_new/segmentation_tmp
 

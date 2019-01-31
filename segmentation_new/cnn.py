@@ -66,7 +66,7 @@ class FCN32:
 
     def predict(self, x):
         """
-        Returns predictions as one hots.
+        Returns predictions as binary array.
         """
         onehots = self.model.predict(x)
         preds = []

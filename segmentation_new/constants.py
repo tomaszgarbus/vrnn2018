@@ -11,3 +11,7 @@ Y_PATH_TRAIN = 'data/cars_train_labels'
 
 X_PATH_TEST = 'data/cars_test'
 Y_PATH_TEST = 'data/cars_test_labels'
+
+
+X_PATH_PRED = 'data/cars_pred'
+Y_PATH_PRED = 'data/cars_pred_labels'

@@ -65,16 +65,42 @@ class CarsLoader:
             y_path = os.path.join(ys_path, y_file)
             x = np.array(PIL.Image.open(x_path).resize(INPUT_SIZE))
             if x.shape != (INPUT_SIZE[0], INPUT_SIZE[1], 3):
-              continue
+                continue
             x = CarsLoader.normalize_pixels(x)
             y = np.array(PIL.Image.open(y_path).resize(INPUT_SIZE))
             y = CarsLoader.reduce_labels(y)
             xs.append(x.reshape(1, INPUT_SIZE[0], INPUT_SIZE[1], 3))
             ys.append(y.reshape(1, INPUT_SIZE[0], INPUT_SIZE[1], 2))
-        xs = np.concatenate(xs)
         ys = np.concatenate(ys)
         return xs, ys
 
+    @staticmethod
+    def load_batch_with_no_labels(xs_path, ys_path, batch_size=1000):
+        x_files = CarsLoader.list_files_in_directory(xs_path)
+        y_files = CarsLoader.list_files_in_directory(ys_path)
+        xs = []
+        names = []
+        sizes = []
+        for x_file in x_files:
+            if x_file in y_files:
+                continue
+            x_path = os.path.join(xs_path, x_file)
+            x = PIL.Image.open(x_path)
+            size = x.size
+            x = np.array(x.resize(INPUT_SIZE))
+            if x.shape != (INPUT_SIZE[0], INPUT_SIZE[1], 3):
+                continue
+            x = CarsLoader.normalize_pixels(x)
+
+            xs.append(x.reshape(1, INPUT_SIZE[0], INPUT_SIZE[1], 3))
+            names.append(x_file)
+            sizes.append(size)
+
+            batch_size -= 1
+            if batch_size <= 0:
+                break
+        xs = np.concatenate(xs) if len(xs) > 0 else np.empty(shape=0)
+        return xs, names, sizes
 
     @staticmethod
     def load_data():
@@ -84,6 +110,22 @@ class CarsLoader:
         test_x, test_y = CarsLoader.load_set_with_labels(X_PATH_TEST, Y_PATH_TEST)
         print("All data loaded!")
         return train_x, train_y, test_x, test_y
+
+    @staticmethod
+    def load_unlabeled_batch(batch_size=1000):
+        print("Loading " + str(batch_size) + " pictures...")
+        return CarsLoader.load_batch_with_no_labels(X_PATH_PRED, Y_PATH_PRED, batch_size)
+
+    @staticmethod
+    def store_labels(pred: bool, filename: str, labels: np.ndarray, original_size: tuple):
+        y_path = Y_PATH_PRED if pred else Y_PATH_TRAIN
+        img_arr = np.zeros(shape=(INPUT_SIZE[0], INPUT_SIZE[1], 3), dtype=np.int8)
+        for x in range(INPUT_SIZE[0]):
+            for y in range(INPUT_SIZE[1]):
+                pixl_val = 0 if labels[x, y, 0] >= 1 else 255
+                img_arr[x, y, 0] = img_arr[x, y, 1] = img_arr[x, y, 2] = pixl_val
+        img = PIL.Image.fromarray(img_arr, mode='RGB').resize(original_size)
+        img.save(os.path.join(y_path, filename))
 
     def __init__(self):
         pass
