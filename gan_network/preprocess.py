@@ -13,10 +13,10 @@ import random
 
 X_PATH_TRAIN = 'data/cars_train'
 Y_PATH_TRAIN = 'data/cars_train_labels'
-X_SIZE = 32
-Y_SIZE = 32
-# CACHE_FILE = "gan_prep_cache_64"
-CACHE_FILE = "gan_prep_cache_32"
+X_SIZE = 64
+Y_SIZE = 64
+CACHE_FILE = "gan_cache_64"
+# CACHE_FILE = "gan_prep_cache_32"
 BACKGROUND_COLOR = lambda: (0, 0, 0)  # 255 = white
 BACKGROUND_COLOR_RAND = lambda: (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
 
@@ -59,6 +59,8 @@ class Preprocess:
     def save(self):
         with open(self.cache_file, 'wb') as output:
             pickle.dump(self.dataset, output)
+        np.save(CACHE_FILE + ".npy", self.dataset)
+
 
     def try_loading(self):
         if os.path.isfile(self.cache_file):
