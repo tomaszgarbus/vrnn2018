@@ -8,7 +8,7 @@ import sys
 
 def show_images(imgs, title="", save_instead=False):
     imgs = imgs[:9, :, :, :]
-    imgs = (imgs*255).astype(int)
+    imgs = (imgs*255).astype(np.uint8)
     rows = math.ceil(math.sqrt(len(imgs)))
     cols = np.ceil(len(imgs) / float(rows))
     #plt.imshow(imgs[0, :, :, :])
