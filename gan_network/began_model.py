@@ -41,7 +41,7 @@ class Began:
                  filters=128,
                  gamma=0.3,
                  log_stats_per=1,
-                 log_image_per=20
+                 log_image_per=10
                  ):
         self.img_size = img_size
         self.log_stats_per = log_stats_per
@@ -51,7 +51,7 @@ class Began:
         self.input_space_size = input_space_size
         self.filters = filters
         self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
-        self.adam_gen = Adam(lr=0.00001)
+        self.adam_gen = Adam(lr=0.0002)
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -68,7 +68,7 @@ class Began:
         if os.path.isfile('k.txt'):
             with open('k.txt', 'r') as k_file:
                 self.k = float(k_file.read().split('\n')[0].strip())
-        self.kLambda = 0.001
+        self.kLambda = 0.002
         self.gamma = gamma
 
     def save(self):
@@ -152,10 +152,10 @@ class Began:
         self.compile_networks()
         z = Input(shape=(self.input_space_size,))
         img = self.generator(z)
-        self.discriminator.trainable = False
+        #self.discriminator.trainable = False
         combined = self.discriminator(img)
         gan = Model(z, combined)
-        gan.compile(loss='mean_absolute_error', optimizer=self.adam)
+        gan.compile(loss='mean_absolute_error', optimizer=self.adam_gen)
         self.discriminator.trainable = True
         return gan
 
@@ -207,8 +207,9 @@ class Began:
 
                 # Let's train the generator
                 noise_input_gen = np.random.uniform(-1, 1, (batch_size * 2, self.input_space_size))
-                predictions = self.gan.predict(noise_input_gen, batch_size=batch_size)
-                gen_loss = self.generator.train_on_batch(noise_input_gen, predictions)
+
+                predictions = self.generator.predict(noise_input_gen)
+                gen_loss = self.gan.train_on_batch(noise_input_gen, predictions)
 
                 # Now update k
                 self.k = self.k + self.kLambda * (self.gamma * d_loss_real - d_loss_gen)

@@ -5,14 +5,14 @@ import numpy as np
 
 
 if __name__ == '__main__':
-    preprocess = Preprocess(background_color_fun=BACKGROUND_COLOR_RAND)
+    preprocess = Preprocess( cache_file="gan_prep_cache_32")
     dataset = preprocess.load_dataset()
 
     sample_dataset = dataset[np.random.randint(0, dataset.shape[0], size=9)]
     show_images(sample_dataset)
 
-    model = Began(gamma=0.9, input_space_size=200, filters=64, img_size=32)
-    model.fit(dataset, batch_size=8, n_epoch=2000)
+    model = Began(gamma=0.5, input_space_size=200, filters=128, img_size=32)
+    model.fit(dataset, batch_size=50, n_epoch=2000)
 
     sample_gans = model.generate_random_images(9)
     show_images(sample_gans)

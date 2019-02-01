@@ -10,16 +10,6 @@ from segmentation_new.cars_loader import CarsLoader
 
 
 class CarsSnowball:
-    @staticmethod
-    def store_labels(filename: str, labels: np.ndarray, original_size: tuple):
-        print("Storing labels")
-        img_arr = np.zeros(shape=(INPUT_SIZE[0], INPUT_SIZE[1], 3), dtype=np.int8)
-        for x in range(INPUT_SIZE[0]):
-            for y in range(INPUT_SIZE[1]):
-                pixl_val = 0 if labels[0, x, y, 0] >= 1 else 255
-                img_arr[x, y, 0] = img_arr[x, y, 1] = img_arr[x, y, 2] = pixl_val
-        img = PIL.Image.fromarray(img_arr, mode='RGB').resize(original_size)
-        img.save(os.path.join(Y_PATH_TRAIN, filename))
 
     def next(self, net: FCN32):
         file = self.unlabeled_files[0]
@@ -40,7 +30,8 @@ class CarsSnowball:
         print("Was this car labeled correctly? [y/c/N]")
         response = input().strip()
         if response == 'y' or response == 'Y':
-            CarsSnowball.store_labels(file, out, input_img.size[:2])
+            print("Storing labels...")
+            CarsLoader.store_labels(False, file, out[0], input_img.size[:2])
         elif response == 'c' or response == 'C':
             editor = LabelsEditor(img_arr, out)
             plt.imshow(np.reshape(out, INPUT_SIZE))
@@ -48,7 +39,8 @@ class CarsSnowball:
             print("Save this label? [y/N]")
             response = input().strip()
             if response == 'y' or response == 'Y':
-                CarsSnowball.store_labels(file, out, input_img.size[:2])
+                print("Storing labels...")
+                CarsLoader.store_labels(False, file, out[0], input_img.size[:2])
             elif response == 'n' or response == 'N':
                 pass
             else:

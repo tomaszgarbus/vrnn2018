@@ -30,7 +30,7 @@ def show_images(imgs, title="", save_instead=False):
 
 class ChartGenerator:
 
-    def __init__(self, print_logged=True):
+    def __init__(self, print_logged=False):
         self.logged = {'iter':[]}
         self.print_logged = print_logged
 
