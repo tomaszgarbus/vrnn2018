@@ -163,7 +163,7 @@ class UNet:
             print("Initializing variables (model checkpoint not found)")
             tf.global_variables_initializer().run()
 
-    def fit(self, x, y, mb_size=2, nb_epochs=1):
+    def fit(self, x, y, mb_size=2, nb_epochs=1, validation_data=None):
         for epoch in range(nb_epochs):
             print("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
             logging.info("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
@@ -192,11 +192,22 @@ class UNet:
                 bar.message = 'loss: {0:.8f} acc: {1:.4f} mean_acc: {2:.4f}'.format(loss, acc, sum_accs/(iter+1))
                 bar.next()
             bar.finish()
+            if not (validation_data is None):
+                val_acc = self.evaluate(validation_data[0], validation_data[1])
+                print('val_acc: {.4f}'.format(val_acc))
             self.save()
 
     def predict(self, x):
         results = self.sess.run([self.preds], feed_dict={self.x: x})
         return results[0]
+
+    def evaluate(self, x: np.ndarray, y: np.ndarray):
+        pred = self.predict(x)
+        pred.reshape(y.shape)
+        corr = (pred == y).sum()
+        acc = corr / pred.size()
+        return acc
+
 
     def save(self):
         self.saver.save(self.sess, SAVED_MODEL_PATH)
