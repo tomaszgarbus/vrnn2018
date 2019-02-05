@@ -211,7 +211,7 @@ class UNet:
         pred = np.concatenate(preds, axis=0)
         pred.reshape(y.shape)
         corr = (pred == y).sum()
-        acc = corr / len(pred)
+        acc = corr / pred.size
         return acc
 
     def save(self):
