@@ -63,6 +63,8 @@ class ChartGenerator:
         fname = 'logs/' + "PL_ALL" + str(datetime.datetime.now()) + '.jpg'
         plt.savefig(fname)
         plt.close()
+        if 'gamma_real' not in self.logged:
+            return
         plt.figure(figsize=(800 / my_dpi, 800 / my_dpi), dpi=my_dpi)
         plt.plot('iter', 'gamma_real', data=self.logged, color='orange', marker='', linewidth=2, alpha=0.4, label='gamma_real')
         plt.title('gamma real')

@@ -49,17 +49,17 @@ class DCGans:
 
     def build_generator(self):
         model = Sequential()
-        model.add(Dense((SIZE // 8) ** 2 * 1024, use_bias=False, input_shape=(self.input_space_size,)))
+        model.add(Dense((SIZE // 4) ** 2 * 1024, use_bias=False, input_shape=(self.input_space_size,)))
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
-        model.add(Reshape((SIZE // 8, SIZE // 8, 1024)))
-        assert model.output_shape == (None, SIZE // 8, SIZE // 8, 1024)
+        model.add(Reshape((SIZE // 4, SIZE // 4, 1024)))
+        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 1024)
 
-        model.add(Conv2DTranspose(512, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 512)
-        model.add(BatchNormalization())
-        model.add(LeakyReLU())
+        # model.add(Conv2DTranspose(512, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        # assert model.output_shape == (None, SIZE // 4, SIZE // 4, 512)
+        # model.add(BatchNormalization())
+        # model.add(LeakyReLU())
 
         model.add(Conv2DTranspose(256, (5, 5), strides=(2, 2), padding='same', use_bias=False))
         assert model.output_shape == (None, SIZE // 2, SIZE // 2, 256)
@@ -160,7 +160,7 @@ class DCGans:
             chart.log_values(batch_count * (i+1), {
                 'd_loss': np.mean(lds), 'gen_loss': np.mean(lgs), 'd_acc': np.mean(daccs),
             })
-            # chart.show_chart()
+            chart.show_chart()
             show_images(self.choose_best(predictions), title='G', save_instead=True)
             print("Mean Losses: \nDiscriminator: " + str(np.mean(lds)) + ", "
                   + str(np.mean(daccs))+"\nGenerator: " + str(np.mean(lgs)) + "\n")

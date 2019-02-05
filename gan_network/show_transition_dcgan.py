@@ -15,8 +15,8 @@ if __name__ == '__main__':
     img_number = 9
 
     model = DCGans()
-    code1 = model.find_code_for_image(fst)
-    code2 = model.find_code_for_image(lst)
+    code1 = model.find_code_for_image(fst, iterations=5000)
+    code2 = model.find_code_for_image(lst, iterations=5000)
 
     code_step = (code2 - code1)/(img_number - 1)
     codes = [code1 + code_step*i for i in range(img_number)]
