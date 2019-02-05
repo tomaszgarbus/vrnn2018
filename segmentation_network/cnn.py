@@ -158,7 +158,7 @@ class UNet:
         self.saver = tf.train.Saver()
         try:
             self.saver.restore(self.sess, SAVED_MODEL_PATH)
-        except (tf.errors.NotFoundError, tf.errors.InvalidArgumentError):
+        except:
             # Initializes variables.
             print("Initializing variables (model checkpoint not found)")
             tf.global_variables_initializer().run()

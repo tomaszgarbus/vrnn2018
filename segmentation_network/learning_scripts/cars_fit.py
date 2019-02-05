@@ -64,6 +64,7 @@ class CarsLoader:
 if __name__ == '__main__':
     xs, ys = CarsLoader.load_training_set_with_labels()
     test_xs, test_ys = CarsLoader.load_set_with_labels(X_PATH_TEST, Y_PATH_TEST)
+    input("Data loaded, press Enter to start training...")
     with tf.Session() as sess:
         net = UNet(sess,
                    learning_rate=0.0001)
