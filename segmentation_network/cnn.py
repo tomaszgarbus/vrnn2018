@@ -194,7 +194,7 @@ class UNet:
             bar.finish()
             if not (validation_data is None):
                 val_acc = self.evaluate(validation_data[0], validation_data[1])
-                print('val_acc: {.4f}'.format(val_acc))
+                print('val_acc: {0:.4f}'.format(val_acc))
             self.save()
 
     def predict(self, x):
@@ -211,7 +211,7 @@ class UNet:
         pred = np.concatenate(preds, axis=0)
         pred.reshape(y.shape)
         corr = (pred == y).sum()
-        acc = corr / pred.size()
+        acc = corr / len(pred)
         return acc
 
     def save(self):
