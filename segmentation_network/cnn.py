@@ -201,13 +201,18 @@ class UNet:
         results = self.sess.run([self.preds], feed_dict={self.x: x})
         return results[0]
 
-    def evaluate(self, x: np.ndarray, y: np.ndarray):
-        pred = self.predict(x)
+    def evaluate(self, x: np.ndarray, y: np.ndarray, mb_size=2):
+        assert len(x) == len(y)
+        iters = int(ceil(len(x)/mb_size))
+        preds = []
+        for iter in range(iters):
+            batch_x = x[iter * mb_size: (iter + 1) * mb_size]
+            preds.append(self.predict(batch_x))
+        pred = np.concatenate(preds, axis=0)
         pred.reshape(y.shape)
         corr = (pred == y).sum()
         acc = corr / pred.size
         return acc
-
 
     def save(self):
         self.saver.save(self.sess, SAVED_MODEL_PATH)
