@@ -61,7 +61,6 @@ class Preprocess:
             pickle.dump(self.dataset, output)
         np.save(CACHE_FILE + ".npy", self.dataset)
 
-
     def try_loading(self):
         if os.path.isfile(self.cache_file):
             with open(self.cache_file, 'rb') as inp:
