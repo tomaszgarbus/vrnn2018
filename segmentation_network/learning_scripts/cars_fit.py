@@ -42,6 +42,8 @@ class CarsLoader:
             x_path = os.path.join(xs_path, y_file)
             y_path = os.path.join(ys_path, y_file)
             x = np.array(PIL.Image.open(x_path).resize(INPUT_SIZE))
+            if x.shape != (INPUT_SIZE[0], INPUT_SIZE[1], 3):
+                continue
             y = np.array(PIL.Image.open(y_path).resize(INPUT_SIZE))
             y = CarsLoader.reduce_labels(y)
             xs.append(x.reshape(1, INPUT_SIZE[0], INPUT_SIZE[1], 3))

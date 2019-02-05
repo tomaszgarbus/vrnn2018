@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 from segmentation_network.cnn import UNet
 from segmentation_network.constants import *
-from segmentation_network.learning_scripts.cars_snowball import CarsLoader
+from segmentation_network.learning_scripts.cars_fit import CarsLoader
 
 
 if __name__ == '__main__':
