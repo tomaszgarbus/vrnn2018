@@ -14,3 +14,6 @@ SAVED_MODEL_PATH = 'segmentation_tmp/model.ckpt'
 
 # Pool size for max-pooling.
 POOL_SIZE = 4
+
+X_PATH_TEST = 'data/cars_test'
+Y_PATH_TEST = 'data/cars_test_labels'
