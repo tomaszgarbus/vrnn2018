@@ -202,7 +202,8 @@ class UNet:
         return results[0]
 
     def evaluate(self, x: np.ndarray, y: np.ndarray, mb_size=2):
-        iters = int(ceil(len(x))/mb_size)
+        assert len(x) == len(y)
+        iters = int(ceil(len(x)/mb_size))
         preds = []
         for iter in range(iters):
             batch_x = x[iter * mb_size: (iter + 1) * mb_size]
