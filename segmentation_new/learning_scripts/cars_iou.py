@@ -16,7 +16,7 @@ if __name__ == '__main__':
         bin_ys.append(CarsLoader.onehot_to_binary(ys[i]))
 
     ys = np.array(bin_ys, dtype='int')
-    ys = np.reshape((ys.shape[0], INPUT_SIZE[0] * INPUT_SIZE[1]))
+    ys = ys.reshape((ys.shape[0], INPUT_SIZE[0] * INPUT_SIZE[1]))
 
     preds = np.array(net.predict(xs), dtype='int')
     preds = preds.reshape((preds.shape[0], INPUT_SIZE[0] * INPUT_SIZE[1]))
@@ -35,5 +35,5 @@ if __name__ == '__main__':
     iou = inter_sums / union_sums
 
     for i in range(iou.shape[0]):
-        print("IoU " + str(i) + ": " + iou[i])
+        print("IoU " + str(i) + ": " + str(iou[i]))
     print("mean IoU: " + str(iou.mean()))
