@@ -205,7 +205,7 @@ class UNet:
         pred = self.predict(x)
         pred.reshape(y.shape)
         corr = (pred == y).sum()
-        acc = corr / pred.size()
+        acc = corr / pred.size
         return acc
 
 
