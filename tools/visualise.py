@@ -6,8 +6,8 @@ import datetime
 import sys
 
 
-def show_images(imgs, title="", save_instead=False):
-    imgs = imgs[:9, :, :, :]
+def show_images(imgs, title="", count=9, save_instead=False):
+    imgs = imgs[:count, :, :, :]
     imgs = (imgs*255).astype(np.uint8)
     rows = math.ceil(math.sqrt(len(imgs)))
     cols = np.ceil(len(imgs) / float(rows))
