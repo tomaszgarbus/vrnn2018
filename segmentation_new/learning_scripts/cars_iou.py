@@ -14,9 +14,12 @@ if __name__ == '__main__':
     bin_ys = []
     for i in range(ys.shape[0]):
         bin_ys.append(CarsLoader.onehot_to_binary(ys[i]))
+
     ys = np.array(bin_ys, dtype='int')
+    ys = np.reshape((ys.shape[0], INPUT_SIZE[0] * INPUT_SIZE[1]))
 
     preds = np.array(net.predict(xs), dtype='int')
+    preds = preds.reshape((preds.shape[0], INPUT_SIZE[0] * INPUT_SIZE[1]))
     inter = ys & preds
     union = ys | preds
 
