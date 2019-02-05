@@ -6,8 +6,8 @@ import datetime
 import sys
 
 
-def show_images(imgs, title="", save_instead=False):
-    imgs = imgs[:9, :, :, :]
+def show_images(imgs, title="", count=9, save_instead=False):
+    imgs = imgs[:count, :, :, :]
     imgs = (imgs*255).astype(np.uint8)
     rows = math.ceil(math.sqrt(len(imgs)))
     cols = np.ceil(len(imgs) / float(rows))
@@ -45,7 +45,7 @@ class ChartGenerator:
             print(" ".join(message))
             sys.stdout.flush()
 
-    def show_chart(self):
+    def show_chart(self, ylim_min=-0.01, ylim_max=0.5):
         plt.style.use('seaborn-darkgrid')
         my_dpi = 96
         plt.figure(figsize=(800 / my_dpi, 800 / my_dpi), dpi=my_dpi)
@@ -59,7 +59,7 @@ class ChartGenerator:
         plt.title("began", loc='left', fontsize=12, fontweight=0, color='orange')
         plt.xlabel("iterations")
         plt.ylabel("value")
-        plt.ylim(-0.01, 0.5)
+        plt.ylim(ylim_min, ylim_max)
         fname = 'logs/' + "PL_ALL" + str(datetime.datetime.now()) + '.jpg'
         plt.savefig(fname)
         plt.close()

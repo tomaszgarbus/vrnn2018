@@ -160,8 +160,8 @@ class DCGans:
             chart.log_values(batch_count * (i+1), {
                 'd_loss': np.mean(lds), 'gen_loss': np.mean(lgs), 'd_acc': np.mean(daccs),
             })
-            chart.show_chart()
-            show_images(self.choose_best(predictions), title='G', save_instead=True)
+            chart.show_chart(ylim_max=max(np.mean(lgs), np.mean(lds), np.mean(daccs)))
+            show_images(self.choose_best(predictions), count=16, title='G', save_instead=True)
             print("Mean Losses: \nDiscriminator: " + str(np.mean(lds)) + ", "
                   + str(np.mean(daccs))+"\nGenerator: " + str(np.mean(lgs)) + "\n")
             sys.stdout.flush()
@@ -171,7 +171,7 @@ class DCGans:
     def generate_image(self, seed):
         return self.generator.predict(seed)
 
-    def choose_best(self, images: np.ndarray, count=9):
+    def choose_best(self, images: np.ndarray, count=16):
         """ From generated images chooses the ones that have the highest discriminator loss. """
         dis_preds = self.discriminator.predict(images)
         indices = list(range(len(images)))
