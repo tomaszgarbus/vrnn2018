@@ -14,7 +14,7 @@ import sys
 from tools.visualise import show_images
 
 SIZE = 64
-D_G_RATIO = 2
+D_G_RATIO = 1
 
 
 class DCGans:
@@ -24,7 +24,9 @@ class DCGans:
                  filename_pref="dc_model"
                  ):
         self.verbosity = verbosity
-        self.filename = filename_pref
+        self.gan_filename = filename_pref
+        self.gen_filename = 'dc_gen'
+        self.dis_filename = 'dc_dis'
         self.input_space_size = input_space_size
         if not self.load_if_possible():
             self.generator = self.build_generator()
@@ -32,15 +34,31 @@ class DCGans:
             self.gan = self.build_gan()
         pass
 
-    def save(self):
-        self.gan.save(self.filename + ".h5")
+    def save(self, iter_no=None):
+        if iter_no is not None:
+            self.gan.save(self.gan_filename + str(iter_no) + ".h5")
+            self.discriminator.save(self.dis_filename + str(iter_no) + '.h5')
+            self.generator.save(self.gen_filename + str(iter_no) + '.h5')
+        else:
+            self.gan.save(self.gan_filename + ".h5")
+            self.discriminator.save(self.dis_filename + '.h5')
+            self.generator.save(self.gen_filename + '.h5')
 
     # TODO przetestowac czy dziala, nie mozna oddzielnie załadować bo musza wskazywać na czesci tego samego obiektu
     def load_if_possible(self):
-        filepath = self.filename + ".h5"
+        # TODO: generator i dyskryminator też
+        filepath = self.gan_filename + ".h5"
         if not os.path.isfile(filepath):
             return False
         self.gan = load_model(filepath)
+        filepath = self.gen_filename + ".h5"
+        if not os.path.isfile(filepath):
+            return False
+        self.generator = load_model(filepath)
+        filepath = self.dis_filename + ".h5"
+        if not os.path.isfile(filepath):
+            return False
+        self.discriminator = load_model(filepath)
         print("Ładowanie może nie działać, patrz na kod dcgan_model.py/load_if_possible")
         self.generator = self.gan.layers[1]
         self.discriminator = self.gan.layers[2]
@@ -160,13 +178,14 @@ class DCGans:
             chart.log_values(batch_count * (i+1), {
                 'd_loss': np.mean(lds), 'gen_loss': np.mean(lgs), 'd_acc': np.mean(daccs),
             })
-            chart.show_chart(ylim_max=max(np.mean(lgs), np.mean(lds), np.mean(daccs)))
+            chart.show_chart(ylim_max=8, title='dcgan')
             show_images(self.choose_best(predictions), count=16, title='G', save_instead=True)
             print("Mean Losses: \nDiscriminator: " + str(np.mean(lds)) + ", "
                   + str(np.mean(daccs))+"\nGenerator: " + str(np.mean(lgs)) + "\n")
             sys.stdout.flush()
 
             self.save()
+            self.save(i)
 
     def generate_image(self, seed):
         return self.generator.predict(seed)
