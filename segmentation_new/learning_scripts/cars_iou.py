@@ -7,10 +7,7 @@ from segmentation_new.cnn import FCN32
 from segmentation_new.constants import *
 from segmentation_new.cars_loader import CarsLoader
 
-
-if __name__ == '__main__':
-    net = FCN32()
-    xs, ys = CarsLoader.load_set_with_labels(X_PATH_TEST, Y_PATH_TEST)
+def mean_iou(xs: np.ndarray, ys: np.ndarray):
     bin_ys = []
     for i in range(ys.shape[0]):
         bin_ys.append(CarsLoader.onehot_to_binary(ys[i]))
@@ -33,7 +30,14 @@ if __name__ == '__main__':
             union_sums[i] = 1.
 
     iou = inter_sums / union_sums
+    return iou.mean()
 
-    for i in range(iou.shape[0]):
-        print("IoU " + str(i) + ": " + str(iou[i]))
-    print("mean IoU: " + str(iou.mean()))
+
+
+if __name__ == '__main__':
+    net = FCN32()
+    val_xs, val_ys = CarsLoader.load_set_with_labels(X_PATH_TEST, Y_PATH_TEST)
+    test_xs, test_ys = CarsLoader.load_set_with_labels(X_PATH_BENCH, Y_PATH_BENCH)
+
+    print("Validation set mean IoU: " + str(mean_iou(val_xs, val_ys)))
+    print("Test set mean IoU: " + str(mean_iou(test_xs, test_ys)))
