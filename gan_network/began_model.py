@@ -51,7 +51,7 @@ class Began:
         self.input_space_size = input_space_size
         self.filters = filters
         self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
-        self.adam_gen = Adam(lr=0.0002)
+        self.adam_gen = Adam(lr=0.00025)
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -68,7 +68,7 @@ class Began:
         if os.path.isfile('k.txt'):
             with open('k.txt', 'r') as k_file:
                 self.k = float(k_file.read().split('\n')[0].strip())
-        self.kLambda = 0.002
+        self.kLambda = 0.008
         self.gamma = gamma
 
     def save(self):
@@ -81,7 +81,7 @@ class Began:
         filepath = self.filename + ".h5"
         if not os.path.isfile(filepath):
             return False
-        self.gan = load_model(filepath)
+        self.gan = load_model(filepath, custom_objects={"mapping_to_target_range":mapping_to_target_range})
         self.generator = self.gan.layers[1]
         self.discriminator = self.gan.layers[2]
         self.compile_networks()
