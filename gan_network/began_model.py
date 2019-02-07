@@ -41,7 +41,7 @@ class Began:
                  filters=128,
                  gamma=0.3,
                  log_stats_per=1,
-                 log_image_per=10
+                 log_image_per=400
                  ):
         self.img_size = img_size
         self.log_stats_per = log_stats_per
@@ -50,8 +50,8 @@ class Began:
         self.filename = filename_pref
         self.input_space_size = input_space_size
         self.filters = filters
-        self.adam = Adam(lr=0.0001)  # lr: between 0.0001 and 0.00005
-        self.adam_gen = Adam(lr=0.00025)
+        self.adam = Adam(lr=0.00001)  # lr: between 0.0001 and 0.00005
+        self.adam_gen = Adam(lr=0.00002)
 
         if not self.load_if_possible():
             self.generator = self.build_decoder()
@@ -68,7 +68,7 @@ class Began:
         if os.path.isfile('k.txt'):
             with open('k.txt', 'r') as k_file:
                 self.k = float(k_file.read().split('\n')[0].strip())
-        self.kLambda = 0.008
+        self.kLambda = 0.012
         self.gamma = gamma
 
     def save(self):
