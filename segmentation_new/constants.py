@@ -15,3 +15,7 @@ Y_PATH_TEST = 'data/cars_test_labels'
 
 X_PATH_PRED = 'data/cars_pred'
 Y_PATH_PRED = 'data/cars_pred_labels'
+
+
+X_PATH_BENCH = 'data/cars_bench'
+Y_PATH_BENCH = 'data/cars_bench_labels'

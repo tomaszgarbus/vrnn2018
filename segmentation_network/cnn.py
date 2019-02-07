@@ -158,16 +158,16 @@ class UNet:
         self.saver = tf.train.Saver()
         try:
             self.saver.restore(self.sess, SAVED_MODEL_PATH)
-        except (tf.errors.NotFoundError, tf.errors.InvalidArgumentError):
+        except:
             # Initializes variables.
             print("Initializing variables (model checkpoint not found)")
             tf.global_variables_initializer().run()
 
-    def fit(self, x, y, val_x=None, val_y=None, mb_size=2, nb_epochs=1):
+    def fit(self, x, y, mb_size=2, nb_epochs=1, validation_data=None):
         for epoch in range(nb_epochs):
             print("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
             logging.info("Epoch {0}/{1}".format(epoch + 1, nb_epochs))
-            iters = int(ceil(len(x)/mb_size))
+            iters = int(ceil(len(x) / mb_size))
             bar = Bar(max=iters)
             sum_accs = 0.
             for iter in range(iters):
@@ -185,27 +185,35 @@ class UNet:
                                                           self.preds,
                                                           self.labels],
                                                          feed_dict={
-                                                            self.x: batch_x,
-                                                            self.y: batch_y
+                                                             self.x: batch_x,
+                                                             self.y: batch_y
                                                          })
                 sum_accs += acc
-                bar.message = 'loss: {0:.8f} acc: {1:.4f} mean_acc: {2:.4f}'.format(loss, acc, sum_accs/(iter+1))
+                bar.message = 'loss: {0:.8f} acc: {1:.4f} mean_acc: {2:.4f}'.format(loss, acc, sum_accs / (iter + 1))
                 bar.next()
             bar.finish()
+            if not (validation_data is None):
+                val_acc = self.evaluate(validation_data[0], validation_data[1])
+                print('val_acc: {0:.4f}'.format(val_acc))
             self.save()
-            if val_x is not None and val_y is not None:
-                val_accs = []
-                val_iters = int(ceil(len(val_x)/mb_size))
-                for iter in range(val_iters):
-                    batch_x = val_x[iter * mb_size: (iter + 1) * mb_size]
-                    batch_y = val_y[iter * mb_size: (iter + 1) * mb_size]
-                    acc = self.sess.run([self.accuracy], feed_dict={self.x: batch_x, self.y: batch_y})[0]
-                    val_accs.append(acc)
-                print("Validation accuracy: " + str(np.mean(val_accs)))
+
 
     def predict(self, x):
         results = self.sess.run([self.preds], feed_dict={self.x: x})
         return results[0]
+
+    def evaluate(self, x: np.ndarray, y: np.ndarray, mb_size=2):
+        assert len(x) == len(y)
+        iters = int(ceil(len(x)/mb_size))
+        preds = []
+        for iter in range(iters):
+            batch_x = x[iter * mb_size: (iter + 1) * mb_size]
+            preds.append(self.predict(batch_x))
+        pred = np.concatenate(preds, axis=0)
+        pred.reshape(y.shape)
+        corr = (pred == y).sum()
+        acc = corr / pred.size
+        return acc
 
     def save(self):
         self.saver.save(self.sess, SAVED_MODEL_PATH)
