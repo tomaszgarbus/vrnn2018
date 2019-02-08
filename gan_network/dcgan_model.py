@@ -175,7 +175,7 @@ class DCGans:
             sys.stdout.flush()
 
             self.save()
-            self.save(i)
+            # self.save(i)
 
     def generate_image(self, seed):
         return self.generator.predict(seed)
