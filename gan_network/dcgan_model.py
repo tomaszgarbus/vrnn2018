@@ -12,7 +12,7 @@ import sys
 from tools.visualise import show_images
 
 SIZE = 64
-D_ITER = 5
+D_ITER = 2
 G_ITER = 1
 
 
