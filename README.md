@@ -10,6 +10,8 @@ Design doc [here](https://docs.google.com/document/d/1PpHswgc0P_6O-V_I3gins0K2ck
 * numpy
 * progress
 * tkinter
+* keras
+* matplotlib
 ### Data
 * [Car dataset](https://ai.stanford.edu/~jkrause/cars/car_dataset.html). Download the [train images](http://imagenet.stanford.edu/internal/car196/cars_train.tgz) and place the `cars_train` directory in `data`.
 * (Optional) [Cityscapes dataset](https://www.cityscapes-dataset.com/downloads/). You need to register and request access to the dataset, then download files `gtFine_trainvaltest.zip` and `leftImg8bit_trainvaltest.zip (11GB)`. Place directories `gtFine_trainvaltest` and `leftImg8bit_trainvaltest` to `data` directory.
