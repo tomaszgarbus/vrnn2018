@@ -7,14 +7,13 @@ from keras.layers.advanced_activations import LeakyReLU
 from keras.models import load_model
 import numpy as np
 from tools.visualise import show_images, ChartGenerator
-import matplotlib.pyplot as plt
 import os.path
-from random import shuffle
 import sys
 from tools.visualise import show_images
 
 SIZE = 64
-D_G_RATIO = 1
+D_ITER = 1
+G_ITER = 1
 
 
 class DCGans:
@@ -25,8 +24,6 @@ class DCGans:
                  ):
         self.verbosity = verbosity
         self.gan_filename = filename_pref
-        self.gen_filename = 'dc_gen'
-        self.dis_filename = 'dc_dis'
         self.input_space_size = input_space_size
         if not self.load_if_possible():
             self.generator = self.build_generator()
@@ -37,12 +34,8 @@ class DCGans:
     def save(self, iter_no=None):
         if iter_no is not None:
             self.gan.save(self.gan_filename + str(iter_no) + ".h5")
-            self.discriminator.save(self.dis_filename + str(iter_no) + '.h5')
-            self.generator.save(self.gen_filename + str(iter_no) + '.h5')
         else:
             self.gan.save(self.gan_filename + ".h5")
-            self.discriminator.save(self.dis_filename + '.h5')
-            self.generator.save(self.gen_filename + '.h5')
 
     # TODO przetestowac czy dziala, nie mozna oddzielnie załadować bo musza wskazywać na czesci tego samego obiektu
     def load_if_possible(self):
@@ -51,13 +44,6 @@ class DCGans:
         if not os.path.isfile(filepath):
             return False
         self.gan = load_model(filepath)
-        filepath = self.gen_filename + ".h5"
-        if not os.path.isfile(filepath):
-            return False
-        self.generator = load_model(filepath)
-        filepath = self.dis_filename + ".h5"
-        if not os.path.isfile(filepath):
-            return False
         self.discriminator = load_model(filepath)
         print("Ładowanie może nie działać, patrz na kod dcgan_model.py/load_if_possible")
         self.generator = self.gan.layers[1]
@@ -67,12 +53,12 @@ class DCGans:
 
     def build_generator(self):
         model = Sequential()
-        model.add(Dense((SIZE // 4) ** 2 * 1024, use_bias=False, input_shape=(self.input_space_size,)))
+        model.add(Dense((SIZE // 4) ** 2 * 512, use_bias=False, input_shape=(self.input_space_size,)))
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
-        model.add(Reshape((SIZE // 4, SIZE // 4, 1024)))
-        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 1024)
+        model.add(Reshape((SIZE // 4, SIZE // 4, 512)))
+        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 512)
 
         # model.add(Conv2DTranspose(512, (5, 5), strides=(2, 2), padding='same', use_bias=False))
         # assert model.output_shape == (None, SIZE // 4, SIZE // 4, 512)
@@ -107,10 +93,10 @@ class DCGans:
         model.add(Dropout(0.5))
         model.add(MaxPooling2D((2, 2)))  # 8
 
-        model.add(Conv2D(512, (3, 3), padding='same'))
-        model.add(LeakyReLU())
-        model.add(Dropout(0.5))
-        model.add(MaxPooling2D((2, 2)))  # 4
+        # model.add(Conv2D(512, (3, 3), padding='same'))
+        # model.add(LeakyReLU())
+        # model.add(Dropout(0.5))
+        # model.add(MaxPooling2D((2, 2)))  # 4
 
         model.add(Flatten())
         model.add(Dense(1))
@@ -120,9 +106,9 @@ class DCGans:
 
     def compile_networks(self):
         self.discriminator.trainable = False
-        self.generator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5))
+        self.generator.compile(loss='binary_crossentropy', optimizer=Adam(0.002, beta_1=0.5))
         self.discriminator.trainable = True
-        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5), metrics=['accuracy'])
+        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(0.002, beta_1=0.5), metrics=['accuracy'])
 
     def build_gan(self):
         self.compile_networks()
@@ -153,7 +139,7 @@ class DCGans:
                 # Input for the generator
                 noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
 
-                for k in range(D_G_RATIO):
+                for k in range(D_ITER):
                     # getting random images from X_train of size=batch_size
                     # these are the real images that will be fed to the discriminator
                     image_batch = dataset[np.random.randint(0, dataset.shape[0], size=batch_size)]
@@ -166,15 +152,19 @@ class DCGans:
                     # Let's train the discriminator
                     ldisc = self.discriminator.train_on_batch(X, y_discriminator)
 
-                # Let's train the generator
-                noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
-                y_generator = [1] * batch_size
-                # for z in range(3):
-                lgen = self.gan.train_on_batch(noise_input, y_generator)
+                for k in range(G_ITER):
+                    # Let's train the generator
+                    noise_input = (np.random.rand(batch_size, self.input_space_size) - 0.5) * 2
+                    y_generator = [1] * batch_size
+                    # for z in range(3):
+                    lgen = self.gan.train_on_batch(noise_input, y_generator)
 
                 lds.append(ldisc[0])
                 daccs.append(ldisc[1])
                 lgs.append(lgen)
+                if j%50 == 0:
+                    print("Mean Losses: \nDiscriminator: " + str(np.mean(lds)) + ", "
+                          + str(np.mean(daccs)) + "\nGenerator: " + str(np.mean(lgs)) + "\n")
             chart.log_values(batch_count * (i+1), {
                 'd_loss': np.mean(lds), 'gen_loss': np.mean(lgs), 'd_acc': np.mean(daccs),
             })
