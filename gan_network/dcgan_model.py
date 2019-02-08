@@ -12,7 +12,7 @@ import sys
 from tools.visualise import show_images
 
 SIZE = 64
-D_ITER = 1
+D_ITER = 5
 G_ITER = 1
 
 
@@ -53,17 +53,17 @@ class DCGans:
 
     def build_generator(self):
         model = Sequential()
-        model.add(Dense((SIZE // 8) ** 2 * 1024, use_bias=False, input_shape=(self.input_space_size,)))
+        model.add(Dense((SIZE // 4) ** 2 * 1024, use_bias=False, input_shape=(self.input_space_size,)))
         model.add(BatchNormalization())
         model.add(LeakyReLU())
 
-        model.add(Reshape((SIZE // 8, SIZE // 8, 1024)))
-        assert model.output_shape == (None, SIZE // 8, SIZE // 8, 1024)
+        model.add(Reshape((SIZE // 4, SIZE // 4, 1024)))
+        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 1024)
 
-        model.add(Conv2DTranspose(512, (5, 5), strides=(2, 2), padding='same', use_bias=False))
-        assert model.output_shape == (None, SIZE // 4, SIZE // 4, 512)
-        model.add(BatchNormalization())
-        model.add(LeakyReLU())
+        # model.add(Conv2DTranspose(512, (5, 5), strides=(2, 2), padding='same', use_bias=False))
+        # assert model.output_shape == (None, SIZE // 4, SIZE // 4, 512)
+        # model.add(BatchNormalization())
+        # model.add(LeakyReLU())
 
         model.add(Conv2DTranspose(256, (5, 5), strides=(2, 2), padding='same', use_bias=False))
         assert model.output_shape == (None, SIZE // 2, SIZE // 2, 256)
