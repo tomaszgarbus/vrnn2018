@@ -106,9 +106,9 @@ class DCGans:
 
     def compile_networks(self):
         self.discriminator.trainable = False
-        self.generator.compile(loss='binary_crossentropy', optimizer=Adam(0.002, beta_1=0.5))
+        self.generator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5))
         self.discriminator.trainable = True
-        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(0.002, beta_1=0.5), metrics=['accuracy'])
+        self.discriminator.compile(loss='binary_crossentropy', optimizer=Adam(0.0002, beta_1=0.5), metrics=['accuracy'])
 
     def build_gan(self):
         self.compile_networks()
